@@ -1,0 +1,19 @@
+.text-field{
+   -fx-background-color: #ebf9ff; /* Çok açık mavi */
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: transparent;
+    -fx-padding: 10 14 10 14;
+    -fx-font-size: 14px;
+    -fx-text-fill: #000000;
+}
+.button{
+    -fx-background-color: #2962ff;  /* Canlı mavi */
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+    }

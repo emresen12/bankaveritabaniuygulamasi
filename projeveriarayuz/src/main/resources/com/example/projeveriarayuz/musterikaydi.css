@@ -1,0 +1,10 @@
+.button {
+    -fx-background-color: #DCEEFF;   /* Açık mavi arka plan */
+    -fx-text-fill: #0D2C5E;          /* Koyu mavi yazı */
+    -fx-background-radius: 12;       /* Hafif oval köşe */
+    -fx-padding: 10 30 10 30;        /* Dikey ve yatay iç boşluk */
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;   /* Çerçeve görünmesin */
+}

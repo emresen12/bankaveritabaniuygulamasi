@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.telekominikasyonödemesicontroller">
+
+    <!-- Geri Butonu (sol üstte) -->
+    <Button layoutX="8.0" layoutY="10.0" onAction="#getodemeler" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
+    <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
+
+    <!-- Üst Profil Simge & Başlık -->
+    <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
+        <Label style="-fx-font-weight: bold;" text="Telekominikasyon Faturası" textFill="#0077cc">
+            <font><Font size="20" /></font>
+        </Label>
+    </VBox>
+
+    <!-- Ana Kart -->
+    <VBox alignment="CENTER" layoutX="30.0" layoutY="108.0" prefHeight="173.0" prefWidth="300" spacing="20" style="-fx-background-color: #182332; -fx-background-radius: 20; -fx-padding: 20;">
+        <Label alignment="CENTER" layoutX="150.0" prefHeight="18.0" prefWidth="110.0" text="Fatura Ücreti" textFill="#0077cc">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Label>
+
+        <Label style="-fx-font-weight: bold;" text="350" textFill="WHITE">
+            <font><Font size="14" /></font>
+        </Label>
+
+    </VBox>
+
+
+    <Button fx:id="girButton" layoutX="90.0" layoutY="445.0" prefHeight="40.0" prefWidth="180" style="-fx-background-color: #182332; -fx-text-fill: #0077cc; -fx-background-radius: 20; -fx-font-weight: bold;" text="FATURAYI ÖDE" />
+
+</AnchorPane>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.müsterianaekrancontroller">
+
+   <!-- Üst Kısım -->
+   <VBox alignment="CENTER" layoutY="0" prefHeight="300" prefWidth="360" spacing="10" style="-fx-background-color: #0F1721;" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+      <ImageView fx:id="profilResmi" fitHeight="80" fitWidth="80">
+         <image>
+            <Image url="@profilresmi.png" />
+         </image>
+      </ImageView>
+
+      <Label fx:id="isimLabel" text="YOUR NAME" textFill="#0077cc">
+         <font><Font size="18" /></font>
+      </Label>
+
+      <Label fx:id="tcLabel" text="your-email@email.com" textFill="#0077cc">
+         <font><Font size="12" /></font>
+      </Label>
+
+      <!-- Bakiye Kutusu -->
+      <VBox alignment="CENTER" maxWidth="240" spacing="5" style="-fx-background-color: #182332; -fx-background-radius: 12; -fx-padding: 10;">
+
+         <Label text="BAKİYE" textFill="#0077cc">
+            <font><Font size="12" /></font>
+         </Label>
+
+         <Label fx:id="bakiyeLabel" text="4,180.20$" textFill="WHITE">
+            <font><Font size="22" /></font>
+         </Label>
+
+      </VBox>
+   </VBox>
+
+   <!-- BUTTONLAR -->
+   <Button fx:id="odemeButton" alignment="BOTTOM_LEFT" layoutX="14.0" layoutY="333.0" onAction="#getOdemeİslemleri" prefHeight="90.0" prefWidth="105.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20;" text="Ödeme İşlemleri" />
+
+   <Button fx:id="sigortaButton" alignment="BOTTOM_CENTER" layoutX="239.0" layoutY="333.0" onAction="#getsigortalarim" prefHeight="90.0" prefWidth="105.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20;" text="Sigortalarım" />
+
+   <Button fx:id="urunButton" alignment="BOTTOM_CENTER" layoutX="127.0" layoutY="439.0" onAction="#getMüsteriÜrünler" prefHeight="90.0" prefWidth="105.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20;" text="Ürünler" />
+
+   <Button fx:id="transferButton" alignment="BOTTOM_CENTER" layoutX="127.0" layoutY="333.0" onAction="#getmusteriparayatırma" prefHeight="90.0" prefWidth="105.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20;" text="Para Transferi" />
+
+   <Button fx:id="hesapButton" alignment="BOTTOM_CENTER" layoutX="14.0" layoutY="439.0" onAction="#getmusteriparacekme" prefHeight="90.0" prefWidth="105.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20;" text="Hesaplarım" />
+
+   <!-- ICONLAR -->
+   <ImageView fx:id="imgOdeme" fitHeight="42.0" fitWidth="71.0" layoutX="45.0" layoutY="348.0" pickOnBounds="true" preserveRatio="true">
+      <image><Image url="@img_13.png" /></image>
+   </ImageView>
+
+   <ImageView fx:id="imgSigorta" fitHeight="42.0" fitWidth="71.0" layoutX="268.0" layoutY="348.0" pickOnBounds="true" preserveRatio="true">
+      <image><Image url="@img_3.png" /></image>
+   </ImageView>
+
+   <ImageView fx:id="imgHesap" fitHeight="32.0" fitWidth="47.0" layoutX="43.0" layoutY="461.0" pickOnBounds="true" preserveRatio="true">
+      <image><Image url="@img_2.png" /></image>
+   </ImageView>
+
+   <ImageView fx:id="imgUrun" fitHeight="42.0" fitWidth="71.0" layoutX="159.0" layoutY="456.0" pickOnBounds="true" preserveRatio="true">
+      <image><Image url="@img_4.png" /></image>
+   </ImageView>
+   <Label alignment="CENTER" layoutX="156.0" layoutY="342.0" prefHeight="18.0" prefWidth="47.0" text="➜" textFill="#0077cc">
+      <font>
+         <Font size="36.0" />
+      </font>
+   </Label>
+
+</AnchorPane>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.OdemeislemleriController">
+
+    <!-- Geri Butonu (sol üstte) -->
+    <Button layoutX="8.0" layoutY="10.0" onAction="#getmusterianaekran" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
+    <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
+
+    <!-- Üst Profil Simge & Başlık -->
+    <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
+        <Label style="-fx-font-weight: bold;" text="ÖDEMELER" textFill="#0077cc">
+            <font><Font size="20" /></font>
+        </Label>
+    </VBox>
+
+
+    <Button fx:id="girButton" layoutX="28.0" layoutY="105.0" onAction="#getsuödemesi" prefHeight="90.0" prefWidth="287.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20; -fx-font-weight: bold;" text="SU FATURASI" />
+   <Button fx:id="girButton1" layoutX="28.0" layoutY="206.0" onAction="#getelektriködemesi" prefHeight="90.0" prefWidth="287.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20; -fx-font-weight: bold;" text="ELEKTRİK FATURASI" />
+   <Button fx:id="girButton11" layoutX="28.0" layoutY="307.0" onAction="#getdogalgazödemesi" prefHeight="90.0" prefWidth="287.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20; -fx-font-weight: bold;" text="DOĞALGAZ FATURASI" />
+   <Button fx:id="girButton111" layoutX="28.0" layoutY="408.0" onAction="#gettelekominikasyonödemesi" prefHeight="90.0" prefWidth="287.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20; -fx-font-weight: bold;" text="TELEKOMÜMİKASYON" />
+   <Label alignment="CENTER" layoutX="258.0" layoutY="126.0" prefHeight="18.0" prefWidth="47.0" text="➜" textFill="#0077cc">
+      <font>
+         <Font size="36.0" />
+      </font>
+   </Label>
+   <Label alignment="CENTER" layoutX="258.0" layoutY="227.0" prefHeight="18.0" prefWidth="47.0" text="➜" textFill="#0077cc">
+      <font>
+         <Font size="36.0" />
+      </font>
+   </Label>
+   <Label alignment="CENTER" layoutX="258.0" layoutY="328.0" prefHeight="18.0" prefWidth="47.0" text="➜" textFill="#0077cc">
+      <font>
+         <Font size="36.0" />
+      </font>
+   </Label>
+   <Label alignment="CENTER" layoutX="258.0" layoutY="429.0" prefHeight="18.0" prefWidth="47.0" text="➜" textFill="#0077cc">
+      <font>
+         <Font size="36.0" />
+      </font>
+   </Label>
+   <ImageView fitHeight="54.0" fitWidth="47.0" layoutX="40.0" layoutY="123.0" pickOnBounds="true" preserveRatio="true">
+      <image>
+         <Image url="@img_9.png" />
+      </image>
+   </ImageView>
+   <ImageView fitHeight="54.0" fitWidth="47.0" layoutX="40.0" layoutY="227.0" pickOnBounds="true" preserveRatio="true">
+      <image>
+         <Image url="@img_10.png" />
+      </image>
+   </ImageView>
+   <ImageView fitHeight="54.0" fitWidth="47.0" layoutX="40.0" layoutY="328.0" pickOnBounds="true" preserveRatio="true">
+      <image>
+         <Image url="@img_11.png" />
+      </image>
+   </ImageView>
+   <ImageView fitHeight="54.0" fitWidth="47.0" layoutX="40.0" layoutY="430.0" pickOnBounds="true" preserveRatio="true">
+      <image>
+         <Image url="@img_12.png" />
+      </image>
+   </ImageView>
+
+</AnchorPane>

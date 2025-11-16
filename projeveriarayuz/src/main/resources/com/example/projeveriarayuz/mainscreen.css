@@ -1,0 +1,18 @@
+.button {
+    -fx-background-color: #1E88E5;  /* Canlı mavi */
+    -fx-text-fill: white;           /* Beyaz yazı */
+    -fx-background-radius: 8;       /* Hafifçe oval köşeler */
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 24 8 24;         /* İç boşluk (dikey x yatay) */
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+.label {
+  -fx-font-family: 'Arial Black';
+  -fx-font-size: 24px;
+  -fx-font-weight: normal;
+  -fx-text-fill: #1a1a2e; /* Koyu mor/siyah ton */
+  -fx-text-transform: uppercase;
+  -fx-letter-spacing: 2px;
+}

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: linear-gradient(to bottom, #002C57, #005A9C);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+
+   <!-- Geri Butonu (sol üstte) -->
+   <Button layoutX="8.0" layoutY="10.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
+   <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
+
+   <!-- Üst Profil Simge & Başlık -->
+   <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
+      <ImageView fitHeight="80" fitWidth="80" pickOnBounds="true">
+         <image>
+            <Image url="@assets_task_01jw11w05yeynszzegje9xn51c_1748087249_img_0.jpg" />
+         </image>
+      </ImageView>
+      <Label style="-fx-font-weight: bold;" text="PARA YATIRMA YÖNETİMİ" textFill="white">
+         <font><Font size="20" /></font>
+      </Label>
+   </VBox>
+
+   <!-- Ana Kart -->
+   <VBox alignment="CENTER" layoutX="30.0" layoutY="182.0" prefWidth="300" spacing="20" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 20;">
+
+      <Label style="-fx-font-weight: bold;" text="Sıradaki Kişi sayısı" textFill="#005A9C">
+         <font><Font size="14" /></font>
+      </Label>
+
+      <Label style="-fx-font-size: 24; -fx-font-weight: bold;" text="78" textFill="black" />
+
+      <Button prefHeight="40" prefWidth="180" style="-fx-background-color: #005A9C; -fx-text-fill: white; -fx-background-radius: 20; -fx-font-weight: bold;" text="Sırayı İlerlet" />
+
+   </VBox>
+
+</AnchorPane>
