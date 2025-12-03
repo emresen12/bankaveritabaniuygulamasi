@@ -3,150 +3,112 @@ package com.example.projeveriarayuz;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
-import javafx.stage.Stage;
-
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.charset.StandardCharsets;
-
-import java.awt.*;
-import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class müsterigirissekmesicontroller {
-    @FXML
-    TextField name;
-    @FXML
-    PasswordField tcField;
-    @FXML
-    public void getmusterianaekran(ActionEvent event) throws IOException {
 
-        try {
-            String tc = tcField.getText().trim();
-            String isim = name.getText().trim();
+    // FXML'deki name alanı artık Soyad girişi için kullanılacak
+    @FXML private TextField name;
+    // FXML'deki tcField alanı artık TC Kimlik No girişi için kullanılacak
+    @FXML private PasswordField tcField;
 
-            // Dosya yolları
-            String pathKuyruk = "C:\\Users\\Admin\\OneDrive\\Masaüstü\\projeler\\projeveri-main\\projeveri-main\\veriyapilariprojee\\paracekmekuyruğu.json";
-            String pathDatabase = "C:\\Users\\Admin\\OneDrive\\Masaüstü\\projeler\\projeveri-main\\projeveri-main\\veriyapilariprojee\\database.json";
+    // --- Giriş Kontrol Metodu (Veritabanı kontrolünü yapar) ---
+    public boolean musteriGirisKontrol(String tc, String soyad) {
+        CustomerDAO dao = new CustomerDAO();
 
-            // JSON dizilerini oku
-            JSONArray kuyrukArray = loadJsonArray(pathKuyruk);
-            JSONArray databaseArray = loadJsonArray(pathDatabase);
+        // ResultSet'i try-with-resources ile kapatıyoruz
+        try (ResultSet rs = dao.musteriGetir(tc)) {
 
-            // Kuyruğu yükle
-            Kuyruk musteriKuyrugu = oncelikliKuyruguHazirla(kuyrukArray);
+            if (rs != null && rs.next()) {
+                // Veritabanındaki Soyad bilgisini al
+                String dbSoyad = rs.getString("Soyad");
 
-            // Yeni müşteri objesi oluştur
-            JSONObject yeniMusteri = new JSONObject();
-            yeniMusteri.put("isim", isim);
-            yeniMusteri.put("Tc", tc);
-            yeniMusteri.put("öncelik", false);  // Normal müşteri
-            yeniMusteri.put("bakiye", "0");
-
-            // Kuyruğa ekle (sonuna)
-            musteriKuyrugu.enqueue(new Node(yeniMusteri));
-
-            // Kuyruğu JSON dosyasına yaz
-            saveKuyrukToJson(pathKuyruk, musteriKuyrugu);
-
-            // Eğer TC database'de yoksa ekle
-            if (!tcVarMi(databaseArray, tc)) {
-                databaseArray.put(yeniMusteri);
-                saveJsonArray(pathDatabase, databaseArray);
+                // Girilen Soyad ile veritabanındaki Soyadı karşılaştır
+                if (dbSoyad != null && dbSoyad.equalsIgnoreCase(soyad)) {
+                    return true; // TC ve Soyad eşleşti
+                }
             }
-            // FXML yüklemesi ve TC aktarımı
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("müsterianaekran.fxml"));
+        } catch (SQLException e) {
+            System.err.println("Giriş Kontrolü SQL Hatası: " + e.getMessage());
+            // Bağlantı veya sorgu hatası durumunda girişi başarısız say
+            showAlert(Alert.AlertType.ERROR, "Veritabanı Hatası", "Giriş sırasında sunucu hatası oluştu.");
+        }
+        return false; // TC bulunamadı veya Soyad eşleşmedi
+    }
+
+
+    @FXML
+    public void getmusterianaekran(ActionEvent event) {
+
+        String soyad = name.getText().trim();
+        String tcNo = tcField.getText().trim();
+
+        if (soyad.isEmpty() || tcNo.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Giriş Hatası", "Lütfen tüm alanları doldurun.");
+            return;
+        }
+
+
+        if (!tcNo.matches("\\d{11}")) {
+            showAlert(Alert.AlertType.ERROR, "Geçersiz TC", "TC Kimlik No 11 haneli sayı olmalıdır!");
+            tcField.requestFocus(); // Hatalı alana odaklan
+            return;
+        }
+
+        if (musteriGirisKontrol(tcNo, soyad)) {
+
+            // --- Başarılı Girişten Sonra Ana Ekrana Yönlendirme ---
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("müsterianaekran.fxml"));
+                Parent root = loader.load();
+
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(new Scene(root));
+                stage.setTitle("Müşteri Ana Ekranı");
+                stage.show();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Hata", "Ana ekran yüklenirken bir sorun oluştu.");
+            }
+
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Giriş Başarısız", "Girilen TC Kimlik No veya Soyad hatalı.");
+        }
+    }
+
+    @FXML
+    public void getkayitsekmesi(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("kayıtekranı.fxml"));
             Parent root = loader.load();
 
-             // Doğru controller sınıfını kullan
-            müsterianaekrancontroller controller = loader.getController(); // DOĞRU
-            controller.setKullaniciTC(tc);
-            // Sahneyi değiştir
-            Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
+            stage.setTitle("Yeni Müşteri Kayıt");
             stage.show();
 
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-            System.out.println(e.getMessage());
-        }
-
-        // Sayfa geçişi
-
-    }
-
-    private JSONArray loadJsonArray(String path) {
-        try {
-            File file = new File(path);
-            if (file.exists()) {
-                String content = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
-                return new JSONArray(content);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new JSONArray();
-    }
-
-    private void saveJsonArray(String path, JSONArray array) {
-        try {
-            Files.write(Paths.get(path), array.toString(2).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Hata", "Kayıt ekranı yüklenirken bir sorun oluştu.");
         }
     }
 
-    private boolean tcVarMi(JSONArray array, String tc) {
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject obj = array.getJSONObject(i);
-            if (obj.getString("Tc").equals(tc)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private Kuyruk oncelikliKuyruguHazirla(JSONArray jsonArray) {
-        Kuyruk kuyruk = new Kuyruk();
-
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject musteri = jsonArray.getJSONObject(i);
-            Node yeniNode = new Node(musteri);
-
-            if (musteri.optBoolean("öncelik", false)) {
-                // Önceliklileri başa ekle
-                yeniNode.next = kuyruk.front;
-                kuyruk.front = yeniNode;
-                if (kuyruk.rear == null) {
-                    kuyruk.rear = yeniNode;
-                }
-            } else {
-                // Normal müşterileri sona ekle
-                kuyruk.enqueue(yeniNode);
-            }
-        }
-
-        return kuyruk;
-    }
-
-    private void saveKuyrukToJson(String path, Kuyruk kuyruk) {
-        JSONArray array = new JSONArray();
-        Node current = kuyruk.front;
-        while (current != null) {
-            array.put(current.veri);
-            current = current.next;
-        }
-        saveJsonArray(path, array);
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

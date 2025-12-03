@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #101721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.KayıtController">
+
+    <VBox alignment="CENTER" spacing="12" AnchorPane.leftAnchor="40" AnchorPane.rightAnchor="40" AnchorPane.topAnchor="20">
+
+        <Label text="YENİ MÜŞTERİ KAYDI" textFill="white">
+            <font>
+                <Font size="22" />
+            </font>
+        </Label>
+
+
+        <TextField fx:id="tckNoField" promptText="TC Kimlik No (Zorunlu)" style="-fx-background-color:#182332; -fx-text-fill:white; -fx-background-radius: 5;" />
+
+        <TextField fx:id="adField" promptText="Ad (Zorunlu)" style="-fx-background-color:#182332; -fx-text-fill:white; -fx-background-radius: 5;" />
+
+        <TextField fx:id="soyadField" promptText="Soyad (Zorunlu)" style="-fx-background-color:#182332; -fx-text-fill:white; -fx-background-radius: 5;" />
+
+        <TextField fx:id="dogumTarihiField" promptText="Doğum Tarihi (YYYY-MM-DD)" style="-fx-background-color:#182332; -fx-text-fill:white; -fx-background-radius: 5;" />
+
+        <TextField fx:id="phoneField" promptText="Telefon" style="-fx-background-color:#182332; -fx-text-fill:white; -fx-background-radius: 5;" />
+
+
+        <Button onAction="#kayitTamamla" prefHeight="40" prefWidth="100" style="-fx-background-color:#223D5A; -fx-text-fill:white; -fx-font-weight: bold; -fx-background-radius: 5;" text="KAYIT TAMAMLA" />
+
+
+        <Button onAction="#geriDon" prefHeight="40" prefWidth="100" style="-fx-background-color:#757575; -fx-text-fill:white; -fx-font-weight: bold; -fx-background-radius: 5;" text="GERİ DÖN" />
+
+
+    </VBox>
+
+</AnchorPane>
