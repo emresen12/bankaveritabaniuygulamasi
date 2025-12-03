@@ -28,7 +28,6 @@
 
         <TextField fx:id="phoneField" promptText="Telefon" style="-fx-background-color:#182332; -fx-text-fill:white; -fx-background-radius: 5;" />
 
-
         <Button onAction="#kayitTamamla" prefHeight="40" prefWidth="100" style="-fx-background-color:#223D5A; -fx-text-fill:white; -fx-font-weight: bold; -fx-background-radius: 5;" text="KAYIT TAMAMLA" />
 
 

@@ -8,9 +8,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.cell.PropertyValueFactory; // Sütun eşleştirme için eklendi
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -19,13 +19,10 @@ import java.sql.SQLException;
 
 public class MusteriUrunlerController {
 
-    // FXML'de tanımlanacak ComboBox (Katalogdaki ürünleri seçmek için)
     @FXML private ComboBox<ProductModel> urunSecimComboBox;
-    // FXML'de tanımlanacak TableView (Müşterinin sahip olduğu ürünleri göstermek için)
     @FXML private TableView<MusteriUrunModel> sahipOlunanUrunlerTable;
-    @FXML private VBox urunEklemeKutusu; // FXML'den ürün ekleme kutusunu gizlemek/göstermek için
 
-    private int activeMusteriId = 1;
+    private int activeMusteriId = 1; // Varsayılan/Test Değer
 
     private ProductDAO productDAO = new ProductDAO();
     private MusteriUrunDAO musteriUrunDAO = new MusteriUrunDAO();
@@ -33,27 +30,49 @@ public class MusteriUrunlerController {
 
     @FXML
     public void initialize() {
-        // Müşteri ID'si ayarlandıktan sonra ürünler yüklenmeli
-        loadProducts(); // Satın alınabilir ürünleri yükler
-        loadMusteriUrunleri(); // Sahip olunan ürünleri yükler
+        // 1. TableView Sütunlarını Tanımla ❗ KRİTİK ADIM
+        setupProductTable();
+
+        // 2. Satın alınabilir ürünleri yükle
+        loadProducts();
+
+        // 3. Sahip olunan ürünleri yükle
+        loadMusteriUrunleri();
     }
 
-    // Giriş kontrolünden gelen müşteri ID'sini ayarlar
+    private void setupProductTable() {
+        // 1. Sütun nesnelerini oluştur
+        TableColumn<MusteriUrunModel, String> hesapNoColumn = new TableColumn<>("Hesap Numarası");
+        TableColumn<MusteriUrunModel, String> urunTipiColumn = new TableColumn<>("Ürün Tipi");
+        TableColumn<MusteriUrunModel, String> baslangicTarihiColumn = new TableColumn<>("Başlangıç Tarihi");
+
+        // 2. Sütunları Model Sınıfındaki Alanlarla eşleştir
+        // NOT: Tırnak içindeki isimler, MusteriUrunModel getter metodlarının
+        // ("get" kısmı çıkarılmış) adlarıyla TAM EŞLEŞMELİDİR!
+        hesapNoColumn.setCellValueFactory(new PropertyValueFactory<>("hesapNumarasi"));
+        urunTipiColumn.setCellValueFactory(new PropertyValueFactory<>("urunTipi"));
+        baslangicTarihiColumn.setCellValueFactory(new PropertyValueFactory<>("baslangicTarihi"));
+
+        // 3. TableView'a sütunları ekle
+        sahipOlunanUrunlerTable.getColumns().clear();
+        sahipOlunanUrunlerTable.getColumns().addAll(hesapNoColumn, urunTipiColumn, baslangicTarihiColumn);
+    }
+
     public void setMusteriId(int musteriId) {
         this.activeMusteriId = musteriId;
-        // Eğer initialize metodu zaten çalıştıysa, ID ayarlandıktan sonra tabloları yenile
+        // ID set edildiyse, tabloyu yenile
         loadMusteriUrunleri();
     }
 
 
     private void loadProducts() {
-        // ProductDAO'dan tüm ürünleri çek ve ComboBox'a doldur
         productList.clear();
         try (ResultSet rs = productDAO.getAllProducts()) {
             while (rs != null && rs.next()) {
                 int id = rs.getInt("UrunID");
                 String tipi = rs.getString("UrunTipi");
                 String aciklama = rs.getString("Aciklama");
+                // ProductModel.java'da Açıklama (Aciklama) kullanılmıyorsa bile, çekilebilir.
                 productList.add(new ProductModel(id, tipi, aciklama));
             }
         } catch (SQLException e) {
@@ -63,18 +82,30 @@ public class MusteriUrunlerController {
     }
 
     private void loadMusteriUrunleri() {
-        // MusteriUrunDAO'dan müşterinin sahip olduğu ürünleri çek ve Tabloya doldur
-        // (Bu kısım için MusteriUrunModel ve TableView sütun tanımları FXML'de yapılmalıdır)
+        ObservableList<MusteriUrunModel> musteriUrunListesi = FXCollections.observableArrayList();
 
-        // Örnek olarak sadece konsola yazdıralım
+        // ❗ Eğer Müşteri ID'si geçerli değilse, yükleme yapma
+        if (activeMusteriId <= 0) {
+            sahipOlunanUrunlerTable.setItems(musteriUrunListesi);
+            return;
+        }
+
         try (ResultSet rs = musteriUrunDAO.musteriUrunleriniGetir(activeMusteriId)) {
             while (rs != null && rs.next()) {
-                System.out.println("Sahip olunan ürün: " + rs.getString("UrunTipi") +
-                        " Hesap No: " + rs.getString("HesapNumarasi"));
+                // DAO'dan gelen veriyi MusteriUrunModel'e dönüştür
+                String hesapNo = rs.getString("HesapNumarasi");
+                String urunTipi = rs.getString("UrunTipi");
+                String aciklama = rs.getString("Aciklama"); // Açıklama Model'e geçiyor
+                String baslangicTarihi = rs.getString("BaslangicTarihi");
+
+                musteriUrunListesi.add(new MusteriUrunModel(hesapNo, urunTipi, aciklama, baslangicTarihi));
             }
         } catch (SQLException e) {
             System.err.println("Müşteriye ait ürünler yüklenemedi: " + e.getMessage());
         }
+
+        // Veriyi TableView'a yükle
+        sahipOlunanUrunlerTable.setItems(musteriUrunListesi);
     }
 
     @FXML
@@ -86,6 +117,11 @@ public class MusteriUrunlerController {
             return;
         }
 
+        if (activeMusteriId <= 0) {
+            showAlert(Alert.AlertType.ERROR, "Hata", "Müşteri kimliği belirlenemedi. Giriş yapın.");
+            return;
+        }
+
         int urunID = selectedProduct.getUrunID();
 
         // Satın alma işlemini yap
@@ -93,7 +129,7 @@ public class MusteriUrunlerController {
             showAlert(Alert.AlertType.INFORMATION, "Başarılı", selectedProduct.getUrunTipi() + " başarıyla satın alındı!");
             loadMusteriUrunleri(); // Tabloyu yenile
         } else {
-            showAlert(Alert.AlertType.ERROR, "Hata", "Satın alma işlemi başarısız oldu (TC zaten ürüne sahip olabilir / SQL Hatası).");
+            showAlert(Alert.AlertType.ERROR, "Hata", "Satın alma işlemi başarısız oldu (Aynı ürün zaten kayıtlı olabilir / SQL Hatası).");
         }
     }
 

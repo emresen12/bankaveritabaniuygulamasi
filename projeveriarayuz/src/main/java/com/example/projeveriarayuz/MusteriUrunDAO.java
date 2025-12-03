@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.Random;
 
 public class MusteriUrunDAO {
@@ -12,6 +11,7 @@ public class MusteriUrunDAO {
     // Helper: Basit bir Hesap Numarası oluşturucu
     private String generateHesapNumarasi() {
         Random random = new Random();
+        // Geçerli zaman damgası + rastgele sayı ile benzersizlik sağlamaya çalışır
         long uniquePart = System.currentTimeMillis() + random.nextInt(1000000);
         return "ACC" + uniquePart;
     }
@@ -20,8 +20,9 @@ public class MusteriUrunDAO {
     public boolean urunSatinAl(int musteriId, int urunId) {
 
         String hesapNo = generateHesapNumarasi();
+        // GETDATE() ile SQL Server'ın o anki tarihini kullanır
         String sql = "INSERT INTO MusteriUrun (MusteriID, UrunID, BaslangicTarihi, HesapNumarasi) " +
-                "VALUES (?, ?, GETDATE(), ?)"; // GETDATE() SQL'in o anki tarihini kullanır
+                "VALUES (?, ?, GETDATE(), ?)";
 
         try (Connection conn = DbConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -34,13 +35,16 @@ public class MusteriUrunDAO {
             return affectedRows > 0;
 
         } catch (SQLException e) {
+
             System.err.println(" Ürün Satın Alma Hatası: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
+
     public ResultSet musteriUrunleriniGetir(int musteriId) {
+        // JOIN kullanarak MusteriUrun ve Product tablolarını birleştirir
         String sql = "SELECT MU.HesapNumarasi, P.UrunTipi, P.Aciklama, MU.BaslangicTarihi " +
                 "FROM MusteriUrun MU JOIN Product P ON MU.UrunID = P.UrunID " +
                 "WHERE MU.MusteriID = ?";

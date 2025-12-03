@@ -3,6 +3,7 @@ package com.example.projeveriarayuz;
 import javafx.beans.property.SimpleStringProperty;
 
 public class MusteriUrunModel {
+    // TableView'a bağlanacak SimpleStringProperty'ler
     private final SimpleStringProperty hesapNumarasi;
     private final SimpleStringProperty urunTipi;
     private final SimpleStringProperty aciklama;
@@ -16,7 +17,7 @@ public class MusteriUrunModel {
         this.baslangicTarihi = new SimpleStringProperty(baslangicTarihi);
     }
 
-    // Getter Metotları (TableView sütunları bunlarla eşleşmelidir)
+    // Getter Metotları (Controller'daki PropertyValueFactory için zorunlu)
     public String getHesapNumarasi() {
         return hesapNumarasi.get();
     }

@@ -10,7 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.SQLException; // Eksik olan bu import'u eklemeliyiz.
+import java.sql.SQLException;
 
 public class KayıtController {
 
@@ -20,25 +20,20 @@ public class KayıtController {
     @FXML private TextField phoneField;
     @FXML private TextField dogumTarihiField;
 
-    // MusteriOlmaTarihi artık FXML'de yok, bu yüzden kaldırıldı
-    // @FXML private TextField musteriOlmaTarihiField;
-    @FXML private TextField krediPuaniField;
+    // ❗ KrediPuanı alanı FXML'den kaldırıldığı için buradaki referans da kaldırıldı.
+    // @FXML private TextField krediPuaniField;
 
 
     @FXML
     public void initialize() {
-        // Hata alan 30. satır burasıdır. DbConnection.getConnection() bir SQLException fırlatabilir.
         try {
             if (DbConnection.getConnection() != null) {
                 System.out.println("✓ Kayıt sayfası hazır - Veritabanı bağlantısı OK");
             } else {
-                // Eğer bağlantı null dönerse (getConnection'da hata yakalanıp null dönülüyorsa)
                 System.err.println("✗ UYARI: Veritabanı bağlantısı kurulamadı (Connection object is null)!");
             }
         } catch (SQLException e) {
-            // Eğer getConnection() metodunda bir SQLException fırlatılırsa, burada yakalanır.
             System.err.println("✗ HATA: Veritabanı bağlantısı kurulurken SQL hatası oluştu: " + e.getMessage());
-            // showAlert(Alert.AlertType.ERROR, "Kritik Hata", "Veritabanı bağlantısı kurulamadı: " + e.getMessage());
         }
     }
 
@@ -70,16 +65,18 @@ public class KayıtController {
         String telefon = phoneField.getText().trim();
         String dogumTarihi = dogumTarihiField.getText().trim();
 
-        String krediPuaniStr = krediPuaniField.getText().trim();
+        // ❗ Kredi puanı okuma ve işleme kodları kaldırıldı.
 
 
-        if (tc.isEmpty() || ad.isEmpty() || soyad.isEmpty() || krediPuaniStr.isEmpty()) {
+        // Zorunlu alanlar (Kredi Puanı artık zorunlu değil)
+        if (tc.isEmpty() || ad.isEmpty() || soyad.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Eksik Bilgi",
-                    "TC Kimlik No, Ad, Soyad ve Kredi Puanı alanları zorunludur!");
+                    "TC Kimlik No, Ad ve Soyad alanları zorunludur!");
             return;
         }
 
 
+        // TC format kontrolü
         if (!tc.matches("\\d{11}")) {
             showAlert(Alert.AlertType.ERROR, "Geçersiz TC",
                     "TC Kimlik No 11 haneli sayı olmalıdır!\nÖrnek: 12345678901");
@@ -88,6 +85,7 @@ public class KayıtController {
         }
 
 
+        // Doğum Tarihi format kontrolü
         if (!dogumTarihi.isEmpty() && !dogumTarihi.matches("\\d{4}-\\d{2}-\\d{2}")) {
             showAlert(Alert.AlertType.ERROR, "Geçersiz Tarih Formatı",
                     "Doğum tarihi YYYY-MM-DD formatında olmalıdır!\nÖrnek: 1990-05-15");
@@ -96,26 +94,10 @@ public class KayıtController {
         }
 
 
-        if (!krediPuaniStr.matches("\\d+")) {
-            showAlert(Alert.AlertType.ERROR, "Geçersiz Kredi Puanı",
-                    "Kredi Puanı sadece sayı olmalıdır!");
-            krediPuaniField.requestFocus();
-            return;
-        }
-
-        int krediPuani;
-        try {
-            krediPuani = Integer.parseInt(krediPuaniStr);
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Hata", "Kredi Puanı geçersiz bir sayı formatıdır.");
-            return;
-        }
-
-
         CustomerDAO dao = new CustomerDAO();
 
-
-        boolean success = dao.musteriEkle(tc, ad, soyad, dogumTarihi, telefon, krediPuani);
+        // ❗ musteriEkle metodunun çağrısı güncellendi: Sadece gerekli 5 parametre gönderiliyor.
+        boolean success = dao.musteriEkle(tc, ad, soyad, dogumTarihi, telefon);
 
         if (success) {
             showAlert(Alert.AlertType.INFORMATION, "Başarılı",
@@ -146,7 +128,6 @@ public class KayıtController {
         dogumTarihiField.clear();
         phoneField.clear();
 
-        krediPuaniField.clear();
     }
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
