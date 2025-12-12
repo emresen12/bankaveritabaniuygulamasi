@@ -1,5 +1,4 @@
 package com.example.projeveriarayuz;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -9,96 +8,83 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class müsterianaekrancontroller {
-    @FXML
-    private Label bakiyeLabel;
-    @FXML
-    private Label isimLabel;
-    @FXML
-    private Label tcLabel;
 
-    private final String pathMusteriler = "C:\\Users\\Admin\\OneDrive\\Masaüstü\\projeler\\projeveri-main\\projeveri-main\\veriyapilariprojee\\database.json";
-    private String kullaniciTC;
-
-    public void setKullaniciTC(String tc) {
-        this.kullaniciTC = tc;
-        initialize();
-        System.out.println("Ana ekran controller'a TC geldi: " + tc);
-    }
-
-    // --- Buttonlar ---
+    // FXML Labels
+    @FXML private Label bakiyeLabel;
+    @FXML private Label isimLabel;
+    @FXML private Label tcLabel;
+    // FXML Buttons/ImageViews
     @FXML private Button ödemeİşlemleriButton;
     @FXML private Button paraTransferiButton;
     @FXML private Button sigortalarımButton;
     @FXML private Button hesaplarımButton;
     @FXML private Button ürünlerButton;
 
-    // --- ImageView'ler ---
     @FXML private ImageView imgOdeme;
     @FXML private ImageView imgTransfer;
     @FXML private ImageView imgSigorta;
     @FXML private ImageView imgHesap;
     @FXML private ImageView imgUrun;
+    private int activeMusteriId = 0;
+    private String kullaniciTC;
+    private String kullaniciIsim;
 
+    public void setKullaniciVerileri(int musteriId, String tc, String isim) {
+        this.activeMusteriId = musteriId;
+        this.kullaniciTC = tc;
+        this.kullaniciIsim = isim;
 
-    // Genel fonksiyon (bütün ImageView'lar için çalışır)
+        System.out.println(" Ana Ekrana Basarıyla Ulasan ID: " + this.activeMusteriId);
+        updateScreenData();
+    }
 
-
+    @FXML
     public void initialize() {
-        if (kullaniciTC != null) {
-            try {
-                String content = new String(Files.readAllBytes(Paths.get(pathMusteriler)), StandardCharsets.UTF_8);
-                JSONArray musteriArray = new JSONArray(content);
+        bindImageToButton(imgOdeme, ödemeİşlemleriButton);
+        bindImageToButton(imgTransfer, paraTransferiButton);
+        bindImageToButton(imgSigorta, sigortalarımButton);
+        bindImageToButton(imgHesap, hesaplarımButton);
+        bindImageToButton(imgUrun, ürünlerButton);
 
-                String bakiye = "0";
-                String isim = "Bilinmiyor";
+        if (activeMusteriId == 0) {
+            updateScreenData();
+        }
+    }
 
-                for (int i = 0; i < musteriArray.length(); i++) {
-                    JSONObject musteri = musteriArray.getJSONObject(i);
-                    if (musteri.getString("Tc").equals(kullaniciTC)) {
-                        bakiye = musteri.optString("bakiye", "0");
-                        isim = musteri.optString("isim", "Bilinmiyor");
-                        if (bakiye.isEmpty()) {
-                            bakiye = "0";
-                        }
-                        break;
-                    }
+    private void updateScreenData() {
 
-                }
-                bindImageToButton(imgOdeme, ödemeİşlemleriButton);
-                bindImageToButton(imgTransfer, paraTransferiButton);
-                bindImageToButton(imgSigorta, sigortalarımButton);
-                bindImageToButton(imgHesap, hesaplarımButton);
-                bindImageToButton(imgUrun, ürünlerButton);
-
-                bakiyeLabel.setText(bakiye + "$");
-                isimLabel.setText(isim);
-                tcLabel.setText(kullaniciTC);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                bakiyeLabel.setText("0$");
-                isimLabel.setText("Bilinmiyor");
-                tcLabel.setText("-");
-            }
+        if (activeMusteriId > 0) {
+            isimLabel.setText(kullaniciIsim);
+            tcLabel.setText(kullaniciTC);
+            bakiyeLabel.setText("1500.00 TL");
         } else {
-            bakiyeLabel.setText("0$");
-            isimLabel.setText("Bilinmiyor");
+            isimLabel.setText("Giriş Yapılmadı");
             tcLabel.setText("-");
+            bakiyeLabel.setText("0$");
         }
     }
     public void bindImageToButton(ImageView imageView, Button button) {
-        imageView.setOnMouseClicked(e -> button.fire());
+        if (imageView != null && button != null) {
+            imageView.setOnMouseClicked(e -> button.fire());
+        }
     }
+    public void getMüsteriÜrünler(ActionEvent event) throws IOException{
 
+        if (activeMusteriId <= 0) {
+            System.err.println(" Müşteri ID aktarılmadı. İşlem iptal edildi.");
+            return;
+        }
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("MüsteriÜrünler.fxml"));
+        Parent root = loader.load();
+        MusteriUrunlerController urunlerController = loader.getController();
+        urunlerController.setMusteriId(activeMusteriId);
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
     public void getmusteriparacekme(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("hesaplarim.fxml"));
         Parent root = loader.load();
@@ -106,23 +92,11 @@ public class müsterianaekrancontroller {
         stage.setScene(new Scene(root));
         stage.show();
     }
-
     public void getmusteriparayatırma(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("MüsteriParaTransferi.fxml"));
         Parent root = loader.load();
-
-        // Controller'ı al ve TC'yi aktar
-        MüsteriParaTransferi controller = loader.getController();
-        controller.setKullaniciTC(kullaniciTC); // <-- BURASI ÖNEMLİ
-
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
-        stage.show();
-    }
-    public void getMüsteriÜrünler(ActionEvent event) throws IOException{
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("MüsteriÜrünler.fxml"));
-        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-        stage.setScene(new Scene(loader.load()));
         stage.show();
     }
     public void getOdemeİslemleri(ActionEvent event) throws IOException{

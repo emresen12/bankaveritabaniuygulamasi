@@ -41,11 +41,11 @@
 
         <TableView fx:id="sahipOlunanUrunlerTable" prefHeight="250.0" prefWidth="300.0" style="-fx-background-color: #182332;">
             <columns>
-                <TableColumn prefWidth="120.0" text="Hesap Numarası" />
+                <TableColumn fx:id="hesapNoColumn" prefWidth="120.0" text="Hesap Numarası" />
 
-                <TableColumn prefWidth="80.0" text="Ürün Tipi" />
+                <TableColumn fx:id="urunTipiColumn" prefWidth="80.0" text="Ürün Tipi" />
 
-                <TableColumn prefWidth="100.0" text="Başlangıç Tarihi" />
+                <TableColumn fx:id="baslangicTarihiColumn" prefWidth="100.0" text="Başlangıç Tarihi" />
             </columns>
         </TableView>
     </VBox>

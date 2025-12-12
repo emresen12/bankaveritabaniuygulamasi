@@ -86,9 +86,7 @@ public class CustomerDAO {
         return false;
     }
 
-    // TC ile MusteriID ve Ad/Soyad bilgisini getir (Giriş kontrolü için kritik)
     public ResultSet musteriGetir(String tc) throws SQLException {
-        // MusteriID, Ad ve Soyad'ı çekiyoruz (Giriş ve ID taşıma için gerekli)
         String sql = "SELECT MusteriID, Ad, Soyad, TC_KimlikNo FROM Musteri WHERE TC_KimlikNo = ?";
 
         Connection conn = DbConnection.getConnection();
@@ -97,11 +95,8 @@ public class CustomerDAO {
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setString(1, tc);
 
-        // ÖNEMLİ: ResultSet'i kullanan Controller'ın bağlantıyı yönetmesi gerekir!
         return ps.executeQuery();
     }
-
-    // --- Diğer Helper Metotları ---
 
     private boolean isValidTC(String tc) {
         return tc != null && tc.matches("\\d{11}");
