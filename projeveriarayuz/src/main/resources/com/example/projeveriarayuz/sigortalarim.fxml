@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -9,19 +11,28 @@
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.sigortalarimController">
 
     <Button layoutX="8.0" layoutY="10.0" onAction="#getmusterianaekran" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
-
     <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
 
-    <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
+    <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="5">
         <Label style="-fx-font-weight: bold;" text="Sigortalarım" textFill="#0077cc">
             <font><Font size="20" /></font>
         </Label>
     </VBox>
 
-    <VBox alignment="CENTER" layoutX="30.0" layoutY="108.0" prefHeight="173.0" prefWidth="300" spacing="20" style="-fx-background-color: #182332; -fx-background-radius: 20; -fx-padding: 20;">
-        <Label style="-fx-font-weight: bold;" textFill="#005A9C">
-            <font><Font size="14" /></font>
-        </Label>
-    </VBox>
+    <Label layoutX="30.0" layoutY="80.0" text="Filtrele:" textFill="#aaaaaa" />
+    <ComboBox fx:id="cmbSigortaTuru" layoutX="30.0" layoutY="100.0" prefHeight="30.0" prefWidth="300.0" promptText="Tümü" style="-fx-background-color: #182332; -fx-text-fill: white; -fx-mark-color: white;" />
+
+    <ScrollPane fitToWidth="true" layoutX="30.0" layoutY="145.0" prefHeight="400.0" prefWidth="300.0" style="-fx-background: #0F1721; -fx-background-color: transparent;">
+        <content>
+            <VBox fx:id="sigortaListesiContainer" alignment="TOP_CENTER" spacing="15" style="-fx-background-color: #0F1721;">
+            </VBox>
+        </content>
+    </ScrollPane>
+
+    <Button layoutX="30.0" layoutY="560.0" mnemonicParsing="false" onAction="#btnSatinAlClicked" prefHeight="40.0" prefWidth="300.0" style="-fx-background-color: #0077cc; -fx-background-radius: 10; -fx-cursor: hand;" text="Yeni Sigorta Satın Al" textFill="WHITE">
+        <font>
+            <Font name="System Bold" size="14.0" />
+        </font>
+    </Button>
 
 </AnchorPane>
