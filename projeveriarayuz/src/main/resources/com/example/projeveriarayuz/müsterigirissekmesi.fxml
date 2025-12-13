@@ -26,8 +26,8 @@
          </image></ImageView>
    </VBox>
    <VBox alignment="CENTER" spacing="15" AnchorPane.leftAnchor="40.0" AnchorPane.rightAnchor="40.0" AnchorPane.topAnchor="270.0">
-      <TextField fx:id="name" prefHeight="40" promptText="Name" style="-fx-background-color: #182332;" />
-      <PasswordField fx:id="tcField" prefHeight="40" promptText="Social Security Number" style="-fx-background-color: #182332;" />
+      <TextField fx:id="name" prefHeight="40" promptText="Name" style="-fx-background-color: #182332; -fx-text-fill: white;" />
+      <PasswordField fx:id="tcField" prefHeight="40" promptText="Social Security Number" style="-fx-background-color: #182332; -fx-text-fill: white;" />
       <Button onAction="#getmusterianaekran" prefWidth="100" style="-fx-background-color: #223D5A; -fx-text-fill: white;" text="LOG IN" />
 
       <Label text="New to Bank App? " textFill="WHITE">
