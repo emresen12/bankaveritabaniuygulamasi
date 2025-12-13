@@ -35,9 +35,7 @@ public class telekominikasyonödemesicontroller implements Initializable {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, AppSession.getActiveMusteriId());
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                cmbHesaplar.getItems().add(rs.getString("HesapNo"));
-            }
+            while (rs.next()) cmbHesaplar.getItems().add(rs.getString("HesapNo"));
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -45,25 +43,20 @@ public class telekominikasyonödemesicontroller implements Initializable {
     void odemeYap(ActionEvent event) {
         String secilenHesap = cmbHesaplar.getValue();
         String tutarStr = txtTutar.getText();
-
         if (secilenHesap == null || tutarStr.isEmpty()) {
             showAlert("Hata", "Eksik bilgi.");
             return;
         }
-
-        double tutar;
-        try { tutar = Double.parseDouble(tutarStr); }
-        catch (NumberFormatException e) { showAlert("Hata", "Geçersiz Tutar"); return; }
-
-        if (bakiyeYeterliMi(secilenHesap, tutar)) {
-            // YENİ EKLENEN KISIM
-            odemeIsleminiTamamla(secilenHesap, tutar, "Telekomünikasyon Ödemesi");
-
-            showAlert("Başarılı", "Ödeme tamamlandı ve işlemlere kaydedildi.");
-            try { getodemeler(event); } catch (IOException e) { e.printStackTrace(); }
-        } else {
-            showAlert("Yetersiz Bakiye", "Bakiye yetersiz.");
-        }
+        try {
+            double tutar = Double.parseDouble(tutarStr);
+            if (bakiyeYeterliMi(secilenHesap, tutar)) {
+                odemeIsleminiTamamla(secilenHesap, tutar, "Telekomünikasyon Ödemesi");
+                showAlert("Başarılı", "Ödeme tamamlandı.");
+                getodemeler(event);
+            } else {
+                showAlert("Yetersiz Bakiye", "Bakiye yetersiz.");
+            }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private boolean bakiyeYeterliMi(String hesapNo, double tutar) {
@@ -77,23 +70,14 @@ public class telekominikasyonödemesicontroller implements Initializable {
         return false;
     }
 
-    // --- BURASI DEĞİŞTİ ---
     private void odemeIsleminiTamamla(String hesapNo, double tutar, String aciklama) {
         String updateSql = "UPDATE Hesaplar SET Bakiye = Bakiye - ? WHERE HesapNo = ?";
-        String insertSql = "INSERT INTO Islemler (KaynakHesapNo, HedefHesapNo, KartID, KrediID, IslemTuru, IslemTutari) VALUES (?, NULL, NULL, NULL, ?, ?)";
-
-        try (Connection conn = DbConnection.getConnection()) {
-            try (PreparedStatement psUpdate = conn.prepareStatement(updateSql)) {
-                psUpdate.setDouble(1, tutar);
-                psUpdate.setString(2, hesapNo);
-                psUpdate.executeUpdate();
-            }
-            try (PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
-                psInsert.setString(1, hesapNo);
-                psInsert.setString(2, aciklama);
-                psInsert.setDouble(3, tutar);
-                psInsert.executeUpdate();
-            }
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement psUpdate = conn.prepareStatement(updateSql)) {
+            psUpdate.setDouble(1, tutar);
+            psUpdate.setString(2, hesapNo);
+            psUpdate.executeUpdate();
+            IslemDAO.islemKaydet(hesapNo, null, null, null, aciklama, tutar);
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -104,12 +88,7 @@ public class telekominikasyonödemesicontroller implements Initializable {
         stage.setScene(new Scene(loader.load()));
         stage.show();
     }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void showAlert(String t, String m) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION); a.setTitle(t); a.setContentText(m); a.show();
     }
 }
