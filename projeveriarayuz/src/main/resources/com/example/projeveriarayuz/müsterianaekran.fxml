@@ -73,5 +73,8 @@
          <Font size="36.0" />
       </font>
    </Label>
+   <Button fx:id="başvurularımButton" alignment="BOTTOM_CENTER" layoutX="240.0" layoutY="439.0" onAction="#getMüsteriBasvurulari" prefHeight="90.0" prefWidth="105.0" style="-fx-background-color: #0b192f; -fx-text-fill: #0077cc; -fx-background-radius: 20;" text="Başvurular" />
+
+
 
 </AnchorPane>
