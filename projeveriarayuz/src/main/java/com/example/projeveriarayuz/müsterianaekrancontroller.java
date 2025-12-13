@@ -16,6 +16,7 @@ public class müsterianaekrancontroller {
     @FXML private Label bakiyeLabel;
     @FXML private Label isimLabel;
     @FXML private Label tcLabel;
+
     // FXML Buttons/ImageViews
     @FXML private Button ödemeİşlemleriButton;
     @FXML private Button paraTransferiButton;
@@ -28,19 +29,11 @@ public class müsterianaekrancontroller {
     @FXML private ImageView imgSigorta;
     @FXML private ImageView imgHesap;
     @FXML private ImageView imgUrun;
-    private int activeMusteriId = 0;
-    private String kullaniciTC;
-    private String kullaniciIsim;
 
     public void setKullaniciVerileri(int musteriId, String tc, String isim) {
-        this.activeMusteriId = musteriId;
-        this.kullaniciTC = tc;
-        this.kullaniciIsim = isim;
-
-        System.out.println(" Ana Ekrana Basarıyla Ulasan ID: " + this.activeMusteriId);
+        System.out.println(" Ana Ekrana Ulasıldı.");
         updateScreenData();
     }
-
     @FXML
     public void initialize() {
         bindImageToButton(imgOdeme, ödemeİşlemleriButton);
@@ -49,16 +42,15 @@ public class müsterianaekrancontroller {
         bindImageToButton(imgHesap, hesaplarımButton);
         bindImageToButton(imgUrun, ürünlerButton);
 
-        if (activeMusteriId == 0) {
-            updateScreenData();
-        }
+        updateScreenData();
     }
 
     private void updateScreenData() {
+        int activeMusteriId = AppSession.getActiveMusteriId(); // ID'yi AppSession'dan al
 
         if (activeMusteriId > 0) {
-            isimLabel.setText(kullaniciIsim);
-            tcLabel.setText(kullaniciTC);
+            isimLabel.setText(AppSession.getKullaniciIsim());
+            tcLabel.setText(AppSession.getKullaniciTC());
             bakiyeLabel.setText("1500.00 TL");
         } else {
             isimLabel.setText("Giriş Yapılmadı");
@@ -72,43 +64,64 @@ public class müsterianaekrancontroller {
         }
     }
     public void getMüsteriÜrünler(ActionEvent event) throws IOException{
+        int currentId = AppSession.getActiveMusteriId(); // ID'yi Session'dan al
 
-        if (activeMusteriId <= 0) {
-            System.err.println(" Müşteri ID aktarılmadı. İşlem iptal edildi.");
+        if (currentId <= 0) {
+            System.err.println("Müşteri ID aktarılmadı. İşlem iptal edildi.");
             return;
         }
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("MüsteriÜrünler.fxml"));
         Parent root = loader.load();
         MusteriUrunlerController urunlerController = loader.getController();
-        urunlerController.setMusteriId(activeMusteriId);
+        // ID'yi alt Controller'a aktar
+        urunlerController.setMusteriId(currentId);
+
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
         stage.show();
     }
+
     public void getmusteriparacekme(ActionEvent event) throws IOException {
+        // ID kontrolü gerekliyse: AppSession.getActiveMusteriId() kullanın.
         FXMLLoader loader = new FXMLLoader(getClass().getResource("hesaplarim.fxml"));
         Parent root = loader.load();
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
         stage.show();
     }
+
     public void getmusteriparayatırma(ActionEvent event) throws IOException {
+        // ID kontrolü gerekliyse: AppSession.getActiveMusteriId() kullanın.
         FXMLLoader loader = new FXMLLoader(getClass().getResource("MüsteriParaTransferi.fxml"));
         Parent root = loader.load();
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
         stage.show();
     }
+
     public void getOdemeİslemleri(ActionEvent event) throws IOException{
         FXMLLoader loader = new FXMLLoader(getClass().getResource("MusteriOdemeislemleri.fxml"));
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(loader.load()));
         stage.show();
     }
+
     public void getsigortalarim(ActionEvent event) throws IOException{
+        // ID kontrolü gerekliyse: AppSession.getActiveMusteriId() kullanın.
         FXMLLoader loader = new FXMLLoader(getClass().getResource("sigortalarim.fxml"));
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(loader.load()));
+        stage.show();
+    }
+
+    public void handleLogout(ActionEvent event) throws IOException {
+        AppSession.clearSession(); // Oturumu temizle
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("müsterigirissekmesi.fxml"));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(root));
+        stage.setTitle("Müşteri Girişi");
         stage.show();
     }
 }

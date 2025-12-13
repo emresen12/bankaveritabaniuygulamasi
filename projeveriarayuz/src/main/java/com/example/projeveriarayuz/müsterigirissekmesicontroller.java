@@ -17,6 +17,7 @@ public class müsterigirissekmesicontroller {
 
     @FXML private TextField name; // Soyad girişi için
     @FXML private PasswordField tcField; // TC Kimlik No girişi için
+
     @FXML
     public void getmusterianaekran(ActionEvent event) {
         String soyad = name.getText().trim();
@@ -33,6 +34,7 @@ public class müsterigirissekmesicontroller {
             return;
         }
 
+        // CustomerDAO örneği, sizin veritabanı bağlantı sınıfınız olmalı
         CustomerDAO dao = new CustomerDAO();
         int musteriId = -1;
         String ad = null;
@@ -56,12 +58,16 @@ public class müsterigirissekmesicontroller {
 
         if (girisBasarili && musteriId > 0) { // Giriş başarılı
 
+            String tamAdSoyad = ad + " " + soyad;
+            AppSession.setSession(musteriId, tcNo, tamAdSoyad);
+
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("müsterianaekran.fxml"));
                 Parent root = loader.load();
-                müsterianaekrancontroller anaEkranController = loader.getController();
-                String tamAdSoyad = ad + " " + soyad;
-                anaEkranController.setKullaniciVerileri(musteriId, tcNo, tamAdSoyad);
+
+                // Artık anaEkranController.setKullaniciVerileri() metoduna gerek kalmadı
+                // Çünkü Ana Ekran Controller verileri initialize'da AppSession'dan çekecek.
+
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 stage.setScene(new Scene(root));
                 stage.setTitle("Müşteri Ana Ekranı");
@@ -76,10 +82,11 @@ public class müsterigirissekmesicontroller {
             showAlert(Alert.AlertType.ERROR, "Giriş Başarısız", "Girilen TC Kimlik No veya Soyad hatalı.");
         }
     }
+
     @FXML
     public void getkayitsekmesi(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("kayıtekranı.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("kayitekrani.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
@@ -90,6 +97,7 @@ public class müsterigirissekmesicontroller {
             showAlert(Alert.AlertType.ERROR, "Hata", "Kayıt ekranı yüklenirken bir sorun oluştu.");
         }
     }
+
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
