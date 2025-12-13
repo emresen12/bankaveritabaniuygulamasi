@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ProductDAO {
+public class  ProductDAO {
 
     public ResultSet getAllProducts() {
 

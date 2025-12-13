@@ -8,43 +8,65 @@ import java.util.Random;
 
 public class MusteriUrunDAO {
 
-    // Helper: Basit bir Hesap Numarası oluşturucu
+    // Helper: Basit bir Hesap Numarası oluşturucu (Ürün için referans no)
     private String generateHesapNumarasi() {
         Random random = new Random();
-        // Geçerli zaman damgası + rastgele sayı ile benzersizlik sağlamaya çalışır
         long uniquePart = System.currentTimeMillis() + random.nextInt(1000000);
         return "ACC" + uniquePart;
     }
 
-    // ❗ Ürün Satın Alma Metodu: MusteriUrun tablosuna kayıt ekler
-    public boolean urunSatinAl(int musteriId, int urunId) {
+    /**
+     * Ürün Satın Alma Metodu:
+     * 1. Parayı seçilen hesaptan çeker.
+     * 2. Ürünü müşteriye tanımlar (MusteriUrun tablosuna ekler).
+     * 3. İşlemi loglar (Islemler tablosuna ekler).
+     */
+    public boolean urunSatinAl(int musteriId, int urunId, String kaynakHesapNo, double tutar, String urunAdi) {
 
-        String hesapNo = generateHesapNumarasi();
-        // GETDATE() ile SQL Server'ın o anki tarihini kullanır
-        String sql = "INSERT INTO MusteriUrun (MusteriID, UrunID, BaslangicTarihi, HesapNumarasi) " +
-                "VALUES (?, ?, GETDATE(), ?)";
+        String urunHesapNo = generateHesapNumarasi(); // Ürüne özel numara
 
-        try (Connection conn = DbConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        // 1. Bakiyeyi Düşme Sorgusu
+        String updateBakiyeSql = "UPDATE Hesaplar SET Bakiye = Bakiye - ? WHERE HesapNo = ?";
 
-            ps.setInt(1, musteriId);
-            ps.setInt(2, urunId);
-            ps.setString(3, hesapNo);
+        // 2. Ürünü Ekleme Sorgusu
+        String insertUrunSql = "INSERT INTO MusteriUrun (MusteriID, UrunID, BaslangicTarihi, HesapNumarasi) VALUES (?, ?, GETDATE(), ?)";
 
-            int affectedRows = ps.executeUpdate();
-            return affectedRows > 0;
+        try (Connection conn = DbConnection.getConnection()) {
+
+            // A. Ödemeyi Al (Bakiyeden Düş)
+            try (PreparedStatement psUpdate = conn.prepareStatement(updateBakiyeSql)) {
+                psUpdate.setDouble(1, tutar);
+                psUpdate.setString(2, kaynakHesapNo);
+                int updateCount = psUpdate.executeUpdate();
+
+                if (updateCount == 0) {
+                    System.err.println("Hata: Bakiye düşülemedi veya hesap bulunamadı.");
+                    return false;
+                }
+            }
+
+            // B. Ürünü Müşteriye Ekle
+            try (PreparedStatement psInsert = conn.prepareStatement(insertUrunSql)) {
+                psInsert.setInt(1, musteriId);
+                psInsert.setInt(2, urunId);
+                psInsert.setString(3, urunHesapNo);
+                psInsert.executeUpdate();
+            }
+
+            // C. İşlemi Kaydet (IslemDAO Kullanarak)
+            // Parametreler: KaynakHesap, HedefHesap(NULL), KartID(NULL), KrediID(NULL), Açıklama, Tutar
+            IslemDAO.islemKaydet(kaynakHesapNo, null, null, null, urunAdi + " Satın Alımı", tutar);
+
+            return true;
 
         } catch (SQLException e) {
-
-            System.err.println(" Ürün Satın Alma Hatası: " + e.getMessage());
+            System.err.println("Ürün Satın Alma Hatası: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
-
     public ResultSet musteriUrunleriniGetir(int musteriId) {
-        // JOIN kullanarak MusteriUrun ve Product tablolarını birleştirir
         String sql = "SELECT MU.HesapNumarasi, P.UrunTipi, P.Aciklama, MU.BaslangicTarihi " +
                 "FROM MusteriUrun MU JOIN Product P ON MU.UrunID = P.UrunID " +
                 "WHERE MU.MusteriID = ?";
@@ -58,7 +80,7 @@ public class MusteriUrunDAO {
             return ps.executeQuery();
 
         } catch (SQLException e) {
-            System.err.println(" Müşteri Ürünleri Getirme Hatası: " + e.getMessage());
+            System.err.println("Müşteri Ürünleri Getirme Hatası: " + e.getMessage());
             e.printStackTrace();
             return null;
         }

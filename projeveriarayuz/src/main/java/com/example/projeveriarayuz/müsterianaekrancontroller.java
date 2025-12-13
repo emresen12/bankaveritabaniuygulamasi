@@ -51,6 +51,7 @@ public class müsterianaekrancontroller {
         updateScreenData();
     }
 
+
     private void updateScreenData() {
         int activeMusteriId = AppSession.getActiveMusteriId(); // ID'yi AppSession'dan al
 
@@ -133,7 +134,7 @@ public class müsterianaekrancontroller {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("MüsteriÜrünler.fxml"));
         Parent root = loader.load();
         MusteriUrunlerController urunlerController = loader.getController();
-        urunlerController.setMusteriId(currentId);
+
 
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));

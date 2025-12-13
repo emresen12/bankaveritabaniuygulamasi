@@ -1,13 +1,16 @@
 package com.example.projeveriarayuz;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -19,11 +22,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.ResourceBundle;
 
 public class sigortalarimController implements Initializable {
@@ -36,120 +35,177 @@ public class sigortalarimController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
-        // GÜVENLİK KONTROLÜ: Kullanıcı giriş yapmamışsa uyar
+        // GÜVENLİK KONTROLÜ
         if (!AppSession.isUserLoggedIn()) {
-            System.err.println("HATA: Oturum açılmamış! AppSession ID: 0");
+            System.err.println("HATA: Oturum açılmamış!");
             Label lblHata = new Label("Lütfen önce giriş yapınız.");
             lblHata.setTextFill(Color.RED);
             sigortaListesiContainer.getChildren().add(lblHata);
-            return; // Kodun devamını çalıştırma
-        }
-
-        // ComboBox Seçeneklerini Doldur
-        cmbSigortaTuru.getItems().addAll("Tümü", "DASK", "Konut", "Kasko", "Trafik", "Sağlık", "BES");
-        cmbSigortaTuru.getSelectionModel().select("Tümü");
-
-        // Seçim değiştiğinde listeyi güncelle
-        cmbSigortaTuru.setOnAction(event -> {
-            loadSigortalar(cmbSigortaTuru.getValue());
-        });
-
-        // Sayfa ilk açıldığında verileri yükle
-        loadSigortalar("Tümü");
-
-        System.out.println("Sigortalar Sayfası Yüklendi. Aktif Müşteri ID: " + AppSession.getActiveMusteriId());
-    }
-
-    // --- SATIN ALMA BUTONU ---
-    @FXML
-    void btnSatinAlClicked(ActionEvent event) {
-        if (!AppSession.isUserLoggedIn()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Uyarı");
-            alert.setContentText("Oturum süreniz dolmuş veya giriş yapılmamış.");
-            alert.show();
             return;
         }
 
-        List<String> choices = new ArrayList<>();
-        choices.add("DASK");
-        choices.add("Kasko");
-        choices.add("Trafik");
-        choices.add("Sağlık");
-        choices.add("Konut");
+        // Ana Filtre ComboBox Seçenekleri
+        cmbSigortaTuru.getItems().addAll("Tümü", "DASK", "Konut", "Kasko", "Trafik", "Sağlık", "BES");
+        cmbSigortaTuru.getSelectionModel().select("Tümü");
 
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("DASK", choices);
-        dialog.setTitle("Sigorta Satın Al");
-        dialog.setHeaderText("Hangi sigortayı satın almak istersiniz?");
-        dialog.setContentText("Sigorta Türü:");
+        // Seçim değiştiğinde mevcut poliçeleri listele
+        cmbSigortaTuru.setOnAction(event -> loadMevcutSigortalar(cmbSigortaTuru.getValue()));
+
+        // İlk açılışta mevcut poliçeleri yükle
+        loadMevcutSigortalar("Tümü");
+    }
+
+    // --- BAŞVURU BUTONU ---
+    @FXML
+    void btnSatinAlClicked(ActionEvent event) {
+        if (!AppSession.isUserLoggedIn()) {
+            showAlert(Alert.AlertType.WARNING, "Uyarı", "Oturum süreniz dolmuş.");
+            return;
+        }
+
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Sigorta Başvurusu");
+        dialog.setHeaderText("Başvuru yapmak istediğiniz sigorta türünü seçiniz.");
+
+        ButtonType basvuruButtonType = new ButtonType("Başvuru Yap", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(basvuruButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        ComboBox<String> cmbTurSecimi = new ComboBox<>();
+        // Not: Bu isimlerin Veritabanındaki 'SigortaTurleri' tablosundaki 'SigortaAdi' ile BİREBİR AYNI olması lazım.
+        cmbTurSecimi.getItems().addAll("DASK", "Kasko", "Trafik", "Sağlık", "Konut Sigortası", "BES");
+        cmbTurSecimi.getSelectionModel().selectFirst();
+
+        Label lblFiyat = new Label();
+        lblFiyat.setTextFill(Color.GREEN);
+        lblFiyat.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+        cmbTurSecimi.setOnAction(e -> {
+            double fiyat = getTahminiFiyat(cmbTurSecimi.getValue());
+            lblFiyat.setText("Tahmini Tutar: " + fiyat + " TL");
+        });
+        lblFiyat.setText("Tahmini Tutar: " + getTahminiFiyat(cmbTurSecimi.getValue()) + " TL");
+
+        grid.add(new Label("Sigorta Türü:"), 0, 0);
+        grid.add(cmbTurSecimi, 1, 0);
+        grid.add(new Label("Yıllık Prim:"), 0, 1);
+        grid.add(lblFiyat, 1, 1);
+
+        Label lblBilgi = new Label("(Başvurunuz onaylandığında ödeme alınacaktır)");
+        lblBilgi.setFont(Font.font("System", 10));
+        lblBilgi.setTextFill(Color.GRAY);
+        grid.add(lblBilgi, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+        Platform.runLater(cmbTurSecimi::requestFocus);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == basvuruButtonType) {
+                return cmbTurSecimi.getValue();
+            }
+            return null;
+        });
 
         Optional<String> result = dialog.showAndWait();
 
-        result.ifPresent(selectedType -> {
-            satinAlVeKaydet(selectedType);
+        result.ifPresent(secilenTur -> {
+            basvuruYap(secilenTur);
         });
     }
 
-    // --- VERİTABANINA KAYIT (AppSession Kullanarak) ---
-    private void satinAlVeKaydet(String tur) {
-        Random rand = new Random();
-        String sirket = "Anadolu Sigorta";
-        String policeNo = "POL-" + (10000 + rand.nextInt(90000));
-        LocalDate baslangic = LocalDate.now();
-        LocalDate bitis = baslangic.plusYears(1);
+    // --- VERİTABANI İŞLEMLERİ (BAŞVURU KAYDI) ---
+    private void basvuruYap(String sigortaTuru) {
+        // GÜNCELLEME: Artık Product tablosundan değil, SigortaTurleri tablosundan ID alıyoruz.
+        int sigortaTurID = findSigortaTurIdByName(sigortaTuru);
 
-        double tutar = 0;
-        switch (tur) {
-            case "DASK": tutar = 450.0; break;
-            case "Kasko": tutar = 12000.0; break;
-            case "Trafik": tutar = 3500.0; break;
-            case "Sağlık": tutar = 8000.0; break;
-            default: tutar = 1000.0;
+        if (sigortaTurID == -1) {
+            showAlert(Alert.AlertType.ERROR, "Hata",
+                    "Seçilen sigorta türü (" + sigortaTuru + ") veritabanında 'SigortaTurleri' tablosunda bulunamadı.\nLütfen veritabanı tablosundaki isimleri kontrol edin.");
+            return;
         }
 
-        String query = "INSERT INTO Sigorta (MusteriID, SigortaTuru, SigortaSirketi, Policeno, BaslangicTarihi, BitisTarihi, PrimTutari) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // GÜNCELLEME: UrunID yerine SigortaTurID kullanıyoruz.
+        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND SigortaTurID = ? AND BasvuruDurumu = 'Inceleniyor'";
+        String insertSql = "INSERT INTO Basvuru (MusteriID, SigortaTurID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, GETDATE(), 'Inceleniyor')";
 
-        // DbConnection sınıfını kullanıyoruz
-        try (Connection connect = DbConnection.getConnection();
-             PreparedStatement ekle = connect.prepareStatement(query)) {
+        try (Connection conn = DbConnection.getConnection()) {
 
-            // DİKKAT: Müşteri ID'sini AppSession'dan alıyoruz
-            ekle.setInt(1, AppSession.getActiveMusteriId());
+            // A. Mükerrer Başvuru Kontrolü
+            try (PreparedStatement kontrolStmt = conn.prepareStatement(kontrolSql)) {
+                kontrolStmt.setInt(1, AppSession.getActiveMusteriId());
+                kontrolStmt.setInt(2, sigortaTurID);
+                try (ResultSet rs = kontrolStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        showAlert(Alert.AlertType.INFORMATION, "Başvuru Mevcut",
+                                sigortaTuru + " için zaten değerlendirme aşamasında bir başvurunuz var.");
+                        return;
+                    }
+                }
+            }
 
-            ekle.setString(2, tur);
-            ekle.setString(3, sirket);
-            ekle.setString(4, policeNo);
-            ekle.setDate(5, java.sql.Date.valueOf(baslangic));
-            ekle.setDate(6, java.sql.Date.valueOf(bitis));
-            ekle.setDouble(7, tutar);
+            // B. Başvuruyu Ekleme
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.setInt(1, AppSession.getActiveMusteriId());
+                insertStmt.setInt(2, sigortaTurID);
 
-            int sonuc = ekle.executeUpdate();
+                int affectedRows = insertStmt.executeUpdate();
 
-            if (sonuc > 0) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("İşlem Başarılı");
-                alert.setHeaderText(null);
-                alert.setContentText(tur + " sigortası başarıyla satın alındı!");
-                alert.showAndWait();
-
-                // Listeyi güncelle
-                loadSigortalar(cmbSigortaTuru.getValue());
+                if (affectedRows > 0) {
+                    showAlert(Alert.AlertType.INFORMATION, "Başarılı",
+                            sigortaTuru + " başvurunuz başarıyla alındı. \n'Başvurularım' sayfasından durumu takip edebilirsiniz.");
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Hata", "Başvuru oluşturulamadı.");
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Hata");
-            alert.setContentText("Veritabanı bağlantı hatası: " + e.getMessage());
-            alert.show();
+            showAlert(Alert.AlertType.ERROR, "Hata", "Sistem hatası: " + e.getMessage());
         }
     }
 
-    // --- LİSTELEME (AppSession Kullanarak) ---
-    private void loadSigortalar(String filtreTuru) {
+    // --- YARDIMCI METOTLAR ---
+
+    // GÜNCELLEME: Yeni tabloya göre ID bulma
+    private int findSigortaTurIdByName(String sigortaAdi) {
+        // Tam eşleşme arıyoruz
+        String sql = "SELECT SigortaTurID FROM SigortaTurleri WHERE SigortaAdi = ?";
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, sigortaAdi);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("SigortaTurID");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1; // Bulunamadı
+    }
+
+    private double getTahminiFiyat(String tur) {
+        if (tur == null) return 0.0;
+        // Basit bir switch-case ile tahmini fiyatlar
+        if (tur.contains("DASK")) return 450.0;
+        if (tur.contains("Kasko")) return 12000.0;
+        if (tur.contains("Trafik")) return 3500.0;
+        if (tur.contains("Sağlık")) return 8000.0;
+        if (tur.contains("Konut")) return 2500.0;
+        if (tur.contains("BES")) return 1500.0;
+        return 1000.0;
+    }
+
+    // --- MEVCUT POLİÇELERİ LİSTELEME ---
+    private void loadMevcutSigortalar(String filtreTuru) {
         sigortaListesiContainer.getChildren().clear();
 
+        // Mevcut aktif poliçeler 'Sigorta' tablosundan çekiliyor.
         String query = "SELECT SigortaTuru, SigortaSirketi, Policeno, BitisTarihi, PrimTutari FROM Sigorta WHERE MusteriID = ?";
         if (!"Tümü".equals(filtreTuru)) {
             query += " AND SigortaTuru = ?";
@@ -158,9 +214,7 @@ public class sigortalarimController implements Initializable {
         try (Connection connect = DbConnection.getConnection();
              PreparedStatement listele = connect.prepareStatement(query)) {
 
-            // DİKKAT: Burada sorguya giriş yapan kişinin ID'sini veriyoruz
             listele.setInt(1, AppSession.getActiveMusteriId());
-
             if (!"Tümü".equals(filtreTuru)) {
                 listele.setString(2, filtreTuru);
             }
@@ -176,13 +230,12 @@ public class sigortalarimController implements Initializable {
                 String bitis = result.getString("BitisTarihi");
                 double tutar = result.getDouble("PrimTutari");
 
-                VBox card = createSigortaCard(tur, sirket, policeNo, bitis, tutar);
-                sigortaListesiContainer.getChildren().add(card);
+                sigortaListesiContainer.getChildren().add(createSigortaCard(tur, sirket, policeNo, bitis, tutar));
             }
 
             if(!kayitVarmi) {
-                Label lbl = new Label("Kayıt bulunamadı.");
-                lbl.setTextFill(Color.WHITE);
+                Label lbl = new Label("Aktif poliçeniz bulunmamaktadır.");
+                lbl.setTextFill(Color.GRAY);
                 sigortaListesiContainer.getChildren().add(lbl);
             }
 
@@ -221,10 +274,19 @@ public class sigortalarimController implements Initializable {
 
     @FXML
     void getmusterianaekran(ActionEvent event) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("müsterianaekran.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("müsterianaekran.fxml"));
+        Parent root = loader.load();
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
