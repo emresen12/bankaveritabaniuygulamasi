@@ -5,15 +5,9 @@ import java.sql.SQLException;
 
 public class DbConnection {
 
-    // "localhost" demek "Bu bilgisayar" demektir.
-    // Böylece Ahmet'in bilgisayarında Ahmet'in SQL'ine,
-    // Ayşe'nin bilgisayarında Ayşe'nin SQL'ine bağlanır.
-    // Eğer hata alırsanız "\\SQLEXPRESS" kısmını silip sadece "localhost" deneyin.
-    // Eğer 1433 portu çalışmıyorsa instance ismini doğrudan verin:
-// Not: "\" işareti Java'da özel karakter olduğu için "\\" şeklinde yazılır.
     private static final String SERVER_NAME = "localhost";
 
-    private static final String DATABASE_NAME = "bankaveritabani";
+    private static final String DATABASE_NAME = "bankaveritabanı";
 
     // Takım Standardı: Herkesin şifresi aynı olursa kod değiştirmeye gerek kalmaz.
     private static final String USER = "sa";

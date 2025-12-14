@@ -21,31 +21,23 @@ import java.util.Map;
 
 public class MusteriUrunlerController {
 
-    // --- MEVCUT ÜRÜNLER TABLOSU BİLEŞENLERİ ---
     @FXML private TableView<MusteriUrunModel> sahipOlunanUrunlerTable;
     @FXML private TableColumn<MusteriUrunModel, String> hesapNoColumn;
     @FXML private TableColumn<MusteriUrunModel, String> urunTipiColumn;
     @FXML private TableColumn<MusteriUrunModel, String> baslangicTarihiColumn;
-
-    // --- YENİ EKLENEN: BAŞVURU KUTUSU BİLEŞENLERİ ---
     @FXML private ComboBox<String> urunBasvuruComboBox;
 
     private int musteriId;
-    private Map<String, Integer> urunAdiToIdMap = new HashMap<>(); // Ürün isimlerini ID ile eşleştirmek için
+    private Map<String, Integer> urunAdiToIdMap = new HashMap<>();
     private MusteriUrunDAO musteriUrunDAO = new MusteriUrunDAO();
 
     @FXML
     public void initialize() {
-        // Tablo Sütun Ayarları
         setupProductTable();
 
         if (AppSession.isUserLoggedIn()) {
             this.musteriId = AppSession.getActiveMusteriId();
-
-            // 1. Sahip olunan ürünleri yükle
             loadMusteriUrunleri();
-
-            // 2. Başvuru kutusundaki ürünleri doldur (DİĞER CONTROLLERDAN TAŞINDI)
             loadAvailableProducts();
         }
     }
@@ -56,7 +48,6 @@ public class MusteriUrunlerController {
         baslangicTarihiColumn.setCellValueFactory(new PropertyValueFactory<>("baslangicTarihi"));
     }
 
-    // --- MEVCUT ÜRÜNLERİ LİSTELEME ---
     private void loadMusteriUrunleri() {
         ObservableList<MusteriUrunModel> list = FXCollections.observableArrayList();
         if (musteriId <= 0) {
@@ -74,12 +65,12 @@ public class MusteriUrunlerController {
                 ));
             }
         } catch (SQLException e) {
+            System.err.println("Müşteri Ürünleri Yükleme Hatası: " + e.getMessage());
             e.printStackTrace();
         }
         sahipOlunanUrunlerTable.setItems(list);
     }
 
-    // --- BAŞVURU KUTUSU İÇİN ÜRÜNLERİ GETİRME (TAŞINDI) ---
     private void loadAvailableProducts() {
         ObservableList<String> urunler = FXCollections.observableArrayList();
         String sql = "SELECT UrunID, UrunTipi, Aciklama FROM Product";
@@ -105,7 +96,6 @@ public class MusteriUrunlerController {
         }
     }
 
-    // --- BAŞVURU YAPMA BUTONU (TAŞINDI) ---
     @FXML
     private void basvuruYapmaIslemi(ActionEvent event) {
         String secilenUrunAdi = urunBasvuruComboBox.getValue();
@@ -119,6 +109,7 @@ public class MusteriUrunlerController {
             showAlert(Alert.AlertType.ERROR, "Hata", "Seçilen ürün ID'si bulunamadı.");
             return;
         }
+
 
         String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND BasvuruDurumu = 'Inceleniyor'";
         String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID) VALUES (?, ?)";
@@ -137,7 +128,6 @@ public class MusteriUrunlerController {
                 }
             }
 
-            // 2. Yeni Başvuruyu Ekleme
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 insertStmt.setInt(1, this.musteriId);
                 insertStmt.setInt(2, urunID);
@@ -145,8 +135,9 @@ public class MusteriUrunlerController {
                 int affectedRows = insertStmt.executeUpdate();
 
                 if (affectedRows > 0) {
-                    showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Başvurunuz başarıyla alındı.");
-                    // İstersen burada sayfayı yenileyebilirsin veya hiçbir şey yapmazsın.
+                    showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Başvurunuz başarıyla alındı. Başvuru durumunuzu 'Başvurularım' sayfasından takip edebilirsiniz.");
+                    loadMusteriUrunleri();
+
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Hata", "Başvuru kaydı başarısız.");
                 }
