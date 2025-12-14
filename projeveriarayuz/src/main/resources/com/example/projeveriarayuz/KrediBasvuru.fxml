@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;"
+            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.projeveriarayuz.KrediBasvuruController">
+
+    <Button layoutX="8.0" layoutY="10.0" onAction="#getUrunlerAnaEkran"
+            style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
+    <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
+
+    <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
+        <Label style="-fx-font-weight: bold;" text="KREDİ İŞLEMLERİ" textFill="#0077cc">
+            <font><Font size="20" /></font>
+        </Label>
+    </VBox>
+
+    <VBox layoutX="30.0" layoutY="110.0" prefWidth="300" spacing="15"
+          style="-fx-background-color: #182332; -fx-background-radius: 20; -fx-padding: 20;">
+
+        <Label text="Yeni Kredi Başvurusu" style="-fx-font-weight: bold;" textFill="white" />
+
+        <ComboBox fx:id="cmbKrediTuru" prefWidth="300" promptText="Kredi Türü Seçiniz" />
+
+
+        <Label fx:id="lblAciklama" text="Seçilen kredi hakkında bilgi burada gösterilecektir."
+               wrapText="true" textFill="#aaaaaa" />
+
+        <Button onAction="#basvuruYap" prefHeight="40.0" prefWidth="300.0"
+                style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-weight: bold;"
+                text="BAŞVURU YAP" />
+    </VBox>
+
+    <Label layoutX="30.0" layoutY="380.0" text="Onaylanmış Aktif Kredileriniz:" textFill="#aaaaaa" />
+
+    <ScrollPane fitToWidth="true" layoutX="30.0" layoutY="405.0" prefHeight="200.0" prefWidth="300.0"
+                style="-fx-background: #0F1721; -fx-background-color: transparent;">
+        <content>
+            <VBox fx:id="krediListesiContainer" alignment="TOP_CENTER" spacing="15" style="-fx-background-color: #0F1721;">
+            </VBox>
+        </content>
+    </ScrollPane>
+
+</AnchorPane>

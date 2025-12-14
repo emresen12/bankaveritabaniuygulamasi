@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.MusteriUrunlerController">
 
@@ -15,39 +15,45 @@
     <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
 
     <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
-        <Label style="-fx-font-weight: bold;" text="Ürün İşlemleri" textFill="#0077cc">
+        <Label style="-fx-font-weight: bold;" text="Ürün Başvuru Merkezi" textFill="#0077cc">
             <font><Font size="20" /></font>
         </Label>
+        <Label text="Lütfen başvurmak istediğiniz ürün kategorisini seçiniz." textFill="#aaaaaa" />
     </VBox>
 
-    <VBox fx:id="yeniBasvuruKutusu" layoutX="30.0" layoutY="85.0" prefHeight="173.0" prefWidth="300" spacing="10"
-          style="-fx-background-color: #182332; -fx-background-radius: 20; -fx-padding: 20;">
+    <GridPane alignment="CENTER" hgap="20" layoutX="30" layoutY="150" prefWidth="300" vgap="20">
 
-        <Label text="Yeni Ürün Satın Al / Başvur" style="-fx-font-weight: bold;" textFill="white">
-            <font><Font size="16" /></font>
-        </Label>
+        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnHesapIslemleriClicked" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <ImageView fitHeight="40" fitWidth="40">
+                <Image url="@banka_hesap_icon.png" />
+            </ImageView>
+            <Label text="Hesaplar" textFill="white" />
+            <Button mnemonicParsing="false" onAction="#btnHesapIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+        </VBox>
 
-        <ComboBox fx:id="urunBasvuruComboBox" prefWidth="280" promptText="Başvuru Yapılacak Ürünü Seçin" />
+        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnKrediIslemleriClicked" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <ImageView fitHeight="40" fitWidth="40">
+                <Image url="@kredi_icon.png" />
+            </ImageView>
+            <Label text="Krediler" textFill="white" />
+            <Button mnemonicParsing="false" onAction="#btnKrediIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+        </VBox>
 
-        <Button onAction="#basvuruYapmaIslemi" prefHeight="30.0" prefWidth="280"
-                style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-weight: bold;"
-                text="BAŞVURU YAP / SATIN AL" />
-    </VBox>
+        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnKartIslemleriClicked" GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <ImageView fitHeight="40" fitWidth="40">
+                <Image url="@kart_icon.png" />
+            </ImageView>
+            <Label text="Kartlar" textFill="white" />
+            <Button mnemonicParsing="false" onAction="#btnKartIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+        </VBox>
 
-    <VBox layoutX="30.0" layoutY="280.0" prefWidth="300" spacing="10">
-        <Label text="Sahip Olduğum Ürünler" style="-fx-font-weight: bold;" textFill="white">
-            <font><Font size="14" /></font>
-        </Label>
+        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnSigortaIslemleriClicked" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <ImageView fitHeight="40" fitWidth="40">
+                <Image url="@sigorta_icon.png" />
+            </ImageView>
+            <Label text="Sigortalar" textFill="white" />
+            <Button mnemonicParsing="false" onAction="#btnSigortaIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+        </VBox>
 
-        <TableView fx:id="sahipOlunanUrunlerTable" prefHeight="330.0" prefWidth="300.0" style="-fx-background-color: #182332;">
-            <columns>
-                <TableColumn fx:id="hesapNoColumn" prefWidth="120.0" text="Hesap Numarası" />
-                <TableColumn fx:id="urunTipiColumn" prefWidth="80.0" text="Ürün Tipi" />
-                <TableColumn fx:id="baslangicTarihiColumn" prefWidth="100.0" text="Başlangıç Tarihi" />
-            </columns>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
-        </TableView>
-    </VBox>
+    </GridPane>
 </AnchorPane>

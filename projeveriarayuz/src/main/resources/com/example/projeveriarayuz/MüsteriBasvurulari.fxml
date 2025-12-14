@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
@@ -7,6 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.ComboBox?>
 
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;"
             xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
@@ -24,11 +24,17 @@
 
     <VBox layoutX="30.0" layoutY="100.0" prefWidth="300" spacing="10">
 
+        <Label text="Başvuru Türüne Göre Filtrele" style="-fx-font-weight: bold;" textFill="white">
+            <font><Font size="14" /></font>
+        </Label>
+
+        <ComboBox fx:id="cmbBasvuruTuru" prefWidth="300" promptText="Tüm Başvurular" />
+
         <Label text="Mevcut Başvurularınızın Durumu" style="-fx-font-weight: bold;" textFill="white">
             <font><Font size="14" /></font>
         </Label>
 
-        <TableView fx:id="basvuruTable" prefHeight="480.0" prefWidth="300.0"
+        <TableView fx:id="basvuruTable" prefHeight="380.0" prefWidth="300.0"
                    style="-fx-background-color: #182332;">
             <columns>
                 <TableColumn fx:id="urunAdiColumn" prefWidth="120.0" text="Ürün Adı" />

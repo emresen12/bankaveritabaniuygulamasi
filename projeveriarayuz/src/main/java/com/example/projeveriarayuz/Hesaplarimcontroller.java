@@ -19,37 +19,60 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class Hesaplarimcontroller implements Initializable {
 
-    @FXML
-    private VBox hesapListesiContainer;
+    @FXML private VBox hesapListesiContainer;
+    @FXML private ComboBox<String> cmbHesapTuru;
 
-    @FXML
-    private ComboBox<String> cmbHesapTuru;
+    // Yeni: Hesap Türü Adını ID ile eşleştirmek için
+    private Map<String, Integer> hesapAdiToIdMap = new HashMap<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Oturum kontrolü
         if (!AppSession.isUserLoggedIn()) {
             System.err.println("Hata: Kullanıcı girişi yapılmamış.");
             return;
         }
 
-        // Hesap Türlerini Doldur
-        cmbHesapTuru.getItems().addAll("Vadesiz TL Hesabı", "Dolar Hesabı", "Euro Hesabı", "Altın Hesabı", "Yatırım Hesabı");
+        // Hesap Türlerini Doldur (Artık DB'den çekilecek)
+        loadAvailableHesapTurleri();
 
-        // Listeyi Yükle
+        // Mevcut Hesapları Listele
         loadHesaplar();
     }
 
-    // --- MEVCUT HESAPLARI LİSTELE ---
+    // --- YENİ METOT: DB'den Hesap Türlerini Yükle ---
+    private void loadAvailableHesapTurleri() {
+        cmbHesapTuru.getItems().clear();
+        hesapAdiToIdMap.clear();
+
+        // SQL: HesapTurleri tablosundan veri çekiyoruz
+        String sql = "SELECT HesapTurID, Ad FROM HesapTurleri";
+
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                int id = rs.getInt("HesapTurID");
+                String ad = rs.getString("Ad");
+
+                cmbHesapTuru.getItems().add(ad);
+                hesapAdiToIdMap.put(ad, id);
+            }
+        } catch (Exception e) {
+            System.err.println("Hesap Türleri yüklenirken hata: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Hata", "Hesap türleri yüklenemedi.");
+        }
+    }
+
     private void loadHesaplar() {
         hesapListesiContainer.getChildren().clear();
 
-        // ER Diyagramına uygun sorgu
         String query = "SELECT HesapNo, HesapTuru, Bakiye FROM Hesaplar WHERE MusteriID = ?";
 
         try (Connection connect = DbConnection.getConnection();
@@ -65,7 +88,6 @@ public class Hesaplarimcontroller implements Initializable {
                 String hTur = rs.getString("HesapTuru");
                 double bakiye = rs.getDouble("Bakiye");
 
-                // Kart oluşturup ekle
                 hesapListesiContainer.getChildren().add(createHesapCard(hNo, hTur, bakiye));
             }
 
@@ -80,97 +102,105 @@ public class Hesaplarimcontroller implements Initializable {
         }
     }
 
-    // --- YENİ HESAP OLUŞTURMA BUTONU ---
     @FXML
     void btnHesapOlusturClicked(ActionEvent event) {
         String secilenTur = cmbHesapTuru.getValue();
 
         if (secilenTur == null || secilenTur.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Uyarı");
-            alert.setHeaderText(null);
-            alert.setContentText("Lütfen bir hesap türü seçiniz!");
-            alert.show();
+            showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen bir hesap türü seçiniz!");
             return;
         }
 
-        // Yeni hesap oluşturma işlemi
-        createNewAccount(secilenTur);
+        // 1. HesapTurID'yi al
+        Integer hesapTurID = hesapAdiToIdMap.get(secilenTur);
+        if (hesapTurID == null) {
+            showAlert(Alert.AlertType.ERROR, "Hata", "Seçilen hesap ID'si bulunamadı.");
+            return;
+        }
+
+        // Product tablosunda Hesap'ın UrunID'si 3 olduğunu varsayalım.
+        // Bu ID'yi veritabanı yapınıza göre kontrol edip değiştirin.
+        final int HESAP_GENEL_URUN_ID = 3;
+
+        // 2. Başvuru tablosuna kayıt at
+        kayitBasvurusuYap(secilenTur, HESAP_GENEL_URUN_ID, hesapTurID);
     }
 
-    private void createNewAccount(String tur) {
-        // Rastgele bir Hesap Numarası oluştur (Örn: TR-4921...)
-        Random rand = new Random();
-        String yeniHesapNo = "TR-" + (100000 + rand.nextInt(900000));
+    // YENİ METOT: Başvuru Lojiği
+    private void kayitBasvurusuYap(String turAdi, int genelUrunID, int hesapTurID) {
 
-        String insertQuery = "INSERT INTO Hesaplar (HesapNo, MusteriID, HesapTuru, Bakiye) VALUES (?, ?, ?, 0)";
+        // Hesap başvurularında HesapTurID kullanıldığı için kontrol ve insert sorgularına eklenir.
+        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND HesapTurID = ? AND BasvuruDurumu = 'Inceleniyor'";
+        String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, HesapTurID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
 
-        try (Connection connect = DbConnection.getConnection();
-             PreparedStatement ps = connect.prepareStatement(insertQuery)) {
+        try (Connection conn = DbConnection.getConnection()) {
 
-            ps.setString(1, yeniHesapNo);
-            ps.setInt(2, AppSession.getActiveMusteriId());
-            ps.setString(3, tur);
-            // Bakiye varsayılan olarak 0
+            // A. Mükerrer Başvuru Kontrolü
+            try (PreparedStatement kontrolStmt = conn.prepareStatement(kontrolSql)) {
+                kontrolStmt.setInt(1, AppSession.getActiveMusteriId());
+                kontrolStmt.setInt(2, genelUrunID);
+                kontrolStmt.setInt(3, hesapTurID);
+                try (ResultSet rs = kontrolStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        showAlert(Alert.AlertType.INFORMATION, "Başvuru Mevcut",
+                                turAdi + " için zaten değerlendirme aşamasında bir başvurunuz var.");
+                        return;
+                    }
+                }
+            }
 
-            int result = ps.executeUpdate();
+            // B. Başvuruyu Ekleme
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.setInt(1, AppSession.getActiveMusteriId());
+                insertStmt.setInt(2, genelUrunID);
+                insertStmt.setInt(3, hesapTurID);
 
-            if (result > 0) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Başarılı");
-                alert.setHeaderText(null);
-                alert.setContentText(tur + " başarıyla oluşturuldu.\nHesap No: " + yeniHesapNo);
-                alert.showAndWait();
+                int affectedRows = insertStmt.executeUpdate();
 
-                // Listeyi yenile
-                loadHesaplar();
-                cmbHesapTuru.getSelectionModel().clearSelection();
+                if (affectedRows > 0) {
+                    showAlert(Alert.AlertType.INFORMATION, "Başarılı",
+                            turAdi + " için hesap açma başvurunuz başarıyla alındı. \n'Başvurularım' sayfasından durumu takip edebilirsiniz.");
+
+                    cmbHesapTuru.getSelectionModel().clearSelection(); // Seçimi temizle
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Hata", "Başvuru oluşturulamadı.");
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Hata");
-            alert.setContentText("Hesap oluşturulurken hata: " + e.getMessage());
-            alert.show();
+            showAlert(Alert.AlertType.ERROR, "Hata", "Sistem hatası: " + e.getMessage());
         }
     }
 
-    // --- GÖRSEL KART OLUŞTURUCU ---
     private VBox createHesapCard(String hesapNo, String tur, double bakiye) {
         VBox card = new VBox();
         card.setSpacing(5);
         card.setPrefWidth(280);
-        // Koyu mavi kart stili
         card.setStyle("-fx-background-color: #182332; -fx-background-radius: 15; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
 
-        // Hesap Türü Başlığı
         Label lblTur = new Label(tur);
         lblTur.setTextFill(Color.web("#0077cc"));
         lblTur.setFont(Font.font("System", FontWeight.BOLD, 16));
 
-        // Hesap Numarası
         Label lblNo = new Label("No: " + hesapNo);
         lblNo.setTextFill(Color.web("#aaaaaa"));
         lblNo.setFont(Font.font("System", 12));
 
-        // Bakiye Kısmı
         Label lblBakiyeBaslik = new Label("Bakiye:");
         lblBakiyeBaslik.setTextFill(Color.WHITE);
 
         Label lblTutar = new Label(bakiye + " TL");
-        // Döviz türüne göre simgeyi değiştirebilirsin (if tur.equals("Dolar")...)
         if(tur.contains("Dolar")) lblTutar.setText(bakiye + " $");
         else if(tur.contains("Euro")) lblTutar.setText(bakiye + " €");
 
-        lblTutar.setTextFill(Color.web("#4CAF50")); // Yeşil renk
+        lblTutar.setTextFill(Color.web("#4CAF50"));
         lblTutar.setFont(Font.font("System", FontWeight.BOLD, 18));
 
         card.getChildren().addAll(lblTur, lblNo, lblBakiyeBaslik, lblTutar);
         return card;
     }
 
-    // --- GERİ BUTONU ---
     @FXML
     void getmusterianaekran(ActionEvent event) throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource("müsterianaekran.fxml"));
@@ -178,5 +208,13 @@ public class Hesaplarimcontroller implements Initializable {
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

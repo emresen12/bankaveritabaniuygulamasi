@@ -8,6 +8,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -26,11 +27,11 @@ public class MusteriBasvurulariController {
     @FXML private TableColumn<Basvuru, String> tarihColumn;
     @FXML private TableColumn<Basvuru, String> durumColumn;
 
+    @FXML private ComboBox<String> cmbBasvuruTuru;
+
     private int musteriId;
 
-    public void setMusteriId(int musteriId) {
-        this.musteriId = musteriId;
-    }
+    private ObservableList<Basvuru> tumBasvurular = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -38,33 +39,46 @@ public class MusteriBasvurulariController {
             this.musteriId = AppSession.getActiveMusteriId();
         }
 
-        // Tablo Sütun Eşleştirmeleri (Basvuru sınıfındaki getter isimleriyle aynı olmalı)
+        // Tablo Sütun Eşleştirmeleri
         urunAdiColumn.setCellValueFactory(new PropertyValueFactory<>("urunAdi"));
         tarihColumn.setCellValueFactory(new PropertyValueFactory<>("basvuruTarihi"));
         durumColumn.setCellValueFactory(new PropertyValueFactory<>("basvuruDurumu"));
 
+        setupComboBox();
         loadBasvurular();
+    }
+
+    private void setupComboBox() {
+        // Müşterinin başvurabileceği genel türleri ekliyoruz
+        cmbBasvuruTuru.getItems().addAll("Tümü", "Kredi", "Kart", "Hesap", "Sigorta");
+        cmbBasvuruTuru.getSelectionModel().selectFirst();
+
+        // Filtreleme olayını bağlama
+        cmbBasvuruTuru.setOnAction(event -> filtreleBasvurular(cmbBasvuruTuru.getValue()));
     }
 
     private void loadBasvurular() {
         if (this.musteriId <= 0) {
-            basvuruTable.setItems(FXCollections.observableArrayList());
+            basvuruTable.setItems(FXCollections.emptyObservableList());
             return;
         }
 
-        ObservableList<Basvuru> basvuruListesi = FXCollections.observableArrayList();
+        tumBasvurular.clear();
 
-        // GÜNCELLEME: LEFT JOIN ile hem Product hem SigortaTurleri tablosunu bağlıyoruz.
-        // Eğer UrunID doluysa Product tablosundan alır, değilse SigortaTurleri tablosundan alır.
+        // SQL: Tüm başvuruları çekerken 4 farklı tabloya JOIN yapıyoruz (Product, KrediTurleri, KartTurleri, SigortaTurleri)
         String sql = "SELECT " +
                 " B.BasvuruID, " +
                 " B.BasvuruTarihi, " +
                 " B.BasvuruDurumu, " +
                 " P.UrunTipi, " +
-                " P.Aciklama, " +
+                " P.Aciklama, " + // Product'tan genel açıklama (Hesap başvurusu gibi durumlarda kullanılabilir)
+                " KT.Ad AS KrediAdi, " +
+                " KA.Ad AS KartAdi, " +
                 " S.SigortaAdi " +
                 "FROM Basvuru B " +
                 "LEFT JOIN Product P ON B.UrunID = P.UrunID " +
+                "LEFT JOIN KrediTurleri KT ON B.KrediTurID = KT.KrediTurID " +
+                "LEFT JOIN KartTurleri KA ON B.KartTurID = KA.KartTurID " +
                 "LEFT JOIN SigortaTurleri S ON B.SigortaTurID = S.SigortaTurID " +
                 "WHERE B.MusteriID = ?";
 
@@ -79,32 +93,65 @@ public class MusteriBasvurulariController {
                     String tarih = rs.getString("BasvuruTarihi");
                     String durum = rs.getString("BasvuruDurumu");
 
-                    // İsimlendirme Mantığı:
                     String urunTipi = rs.getString("UrunTipi");
-                    String aciklama = rs.getString("Aciklama");
+                    String krediAdi = rs.getString("KrediAdi");
+                    String kartAdi = rs.getString("KartAdi");
                     String sigortaAdi = rs.getString("SigortaAdi");
-
                     String gorunecekAd;
 
-                    if (urunTipi != null) {
-                        // Eğer banka ürünü ise
-                        gorunecekAd = urunTipi + " (" + (aciklama != null ? aciklama : "") + ")";
+                    // Başvurulan Ürün Adını Belirleme Lojiği:
+                    // Detay ID'si dolu olanı önceliklendiriyoruz
+                    if (krediAdi != null) {
+                        gorunecekAd = "Kredi Başvurusu: " + krediAdi;
+                    } else if (kartAdi != null) {
+                        gorunecekAd = "Kart Başvurusu: " + kartAdi;
                     } else if (sigortaAdi != null) {
-                        // Eğer sigorta başvurusu ise
-                        gorunecekAd = sigortaAdi + " (Sigorta)";
+                        gorunecekAd = "Sigorta Başvurusu: " + sigortaAdi;
+                    } else if (urunTipi != null) {
+                        // Kredi/Kart/Sigorta detay ID'si yoksa genel Product adı kullanılır (Örn: Hesaplar)
+                        gorunecekAd = urunTipi + " Başvurusu";
                     } else {
-                        gorunecekAd = "Diğer Başvuru";
+                        gorunecekAd = "Tanımsız Başvuru";
                     }
 
-                    basvuruListesi.add(new Basvuru(basvuruID, gorunecekAd, tarih, durum));
+                    tumBasvurular.add(new Basvuru(basvuruID, gorunecekAd, tarih, durum));
                 }
             }
-            basvuruTable.setItems(basvuruListesi);
+            // Başlangıçta tüm listeyi göster
+            basvuruTable.setItems(tumBasvurular);
 
         } catch (SQLException e) {
             System.err.println("Veritabanı Hatası (Başvurular): " + e.getMessage());
             showAlert(Alert.AlertType.ERROR, "Hata", "Başvurular yüklenirken hata oluştu.");
         }
+    }
+
+    private void filtreleBasvurular(String secilenTur) {
+        if ("Tümü".equals(secilenTur)) {
+            basvuruTable.setItems(tumBasvurular);
+            return;
+        }
+
+        ObservableList<Basvuru> filtrelenmisListe = FXCollections.observableArrayList();
+        String filtre = secilenTur.toLowerCase();
+
+        for (Basvuru basvuru : tumBasvurular) {
+            // UrunAdi sütununda filtrelenen kelimenin geçip geçmediğini kontrol et
+            if (basvuru.getUrunAdi().toLowerCase().contains(filtre)) {
+                filtrelenmisListe.add(basvuru);
+            }
+        }
+
+        basvuruTable.setItems(filtrelenmisListe);
+    }
+
+    @FXML
+    void btnYeniBasvuruYapClicked(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("MusteriUrunler.fxml"));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(root));
+        stage.show();
     }
 
     @FXML
