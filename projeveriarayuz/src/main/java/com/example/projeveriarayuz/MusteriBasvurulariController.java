@@ -117,7 +117,7 @@ public class MusteriBasvurulariController {
                     tumBasvurular.add(new Basvuru(basvuruID, gorunecekAd, tarih, durum));
                 }
             }
-            // Başlangıçta tüm listeyi göster
+
             basvuruTable.setItems(tumBasvurular);
 
         } catch (SQLException e) {
@@ -136,7 +136,7 @@ public class MusteriBasvurulariController {
         String filtre = secilenTur.toLowerCase();
 
         for (Basvuru basvuru : tumBasvurular) {
-            // UrunAdi sütununda filtrelenen kelimenin geçip geçmediğini kontrol et
+
             if (basvuru.getUrunAdi().toLowerCase().contains(filtre)) {
                 filtrelenmisListe.add(basvuru);
             }

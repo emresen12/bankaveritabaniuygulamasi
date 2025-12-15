@@ -1,5 +1,4 @@
 package com.example.projeveriarayuz;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -16,7 +15,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -95,14 +93,13 @@ public class KartBasvuruController implements Initializable {
             return;
         }
 
-        final int KART_GENEL_URUN_ID = 2; // Product tablosundaki Kart ID'si
+        final int KART_GENEL_URUN_ID = 2;
 
         String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND KartTurID = ? AND BasvuruDurumu = 'Inceleniyor'";
         String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, KartTurID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
 
         try (Connection conn = DbConnection.getConnection()) {
 
-            // A. Mükerrer Başvuru Kontrolü
             try (PreparedStatement kontrolStmt = conn.prepareStatement(kontrolSql)) {
                 kontrolStmt.setInt(1, AppSession.getActiveMusteriId());
                 kontrolStmt.setInt(2, KART_GENEL_URUN_ID);
@@ -116,7 +113,6 @@ public class KartBasvuruController implements Initializable {
                 }
             }
 
-            // B. Başvuruyu Ekleme
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 insertStmt.setInt(1, AppSession.getActiveMusteriId());
                 insertStmt.setInt(2, KART_GENEL_URUN_ID); // UrunID=2
@@ -126,7 +122,7 @@ public class KartBasvuruController implements Initializable {
 
                 if (affectedRows > 0) {
                     showAlert(Alert.AlertType.INFORMATION, "Başarılı",
-                            secilenUrunMetni + " başvurunuz başarıyla alındı. \n'Başvurularım' sayfasından durumu takip edebilirsiniz.");
+                            secilenUrunMetni + " Başvurunuz başarıyla alındı.");
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Hata", "Başvuru oluşturulamadı.");
                 }
@@ -137,11 +133,9 @@ public class KartBasvuruController implements Initializable {
         }
     }
 
-    // --- MEVCUT KARTLARI LİSTELEME ---
     private void loadMevcutKartlar() {
         kartListesiContainer.getChildren().clear();
 
-        // Sadece Kart Numara ve Tipi yeterli.
         String query = "SELECT KartNumarasi, KartTipi, Limit, GuncelBorc, SonKullanmaTarihi " +
                 "FROM Kartlar WHERE MusteriID = ?";
 
@@ -159,8 +153,6 @@ public class KartBasvuruController implements Initializable {
                 String tip = result.getString("KartTipi");
                 double limit = result.getDouble("Limit");
                 double borc = result.getDouble("GuncelBorc");
-
-                // Sadece kart kartını oluşturup konteynere ekle
                 kartListesiContainer.getChildren().add(createKartCard(kartNo, tip, limit, borc));
             }
 
@@ -175,25 +167,20 @@ public class KartBasvuruController implements Initializable {
         }
     }
 
-
-    // --- BASİTLEŞTİRİLMİŞ KART GÖRÜNÜMÜ METODU ---
     private VBox createKartCard(String kartNo, String tip, double limit, double borc) {
         VBox card = new VBox();
         card.setSpacing(5);
         card.setPrefWidth(280);
         card.setStyle("-fx-background-color: #182332; -fx-background-radius: 15; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
 
-        // Kart Tipi
         Label lblTip = new Label(tip);
         lblTip.setTextFill(Color.web("#0077cc"));
         lblTip.setFont(Font.font("System", FontWeight.BOLD, 16));
 
-        // Kart Numarası (Güvenlik için sadece son 4 hane)
         String gizliKartNo = "**** **** **** " + kartNo.substring(kartNo.length() - 4);
         Label lblNo = new Label("Kart No: " + gizliKartNo);
         lblNo.setTextFill(Color.WHITE);
 
-        // Limit ve Borç (İsteğe bağlı, basit formatta)
         Label lblLimit = new Label("Limit: " + String.format("%.2f", limit) + " TL");
         lblLimit.setTextFill(Color.web("#aaaaaa"));
 

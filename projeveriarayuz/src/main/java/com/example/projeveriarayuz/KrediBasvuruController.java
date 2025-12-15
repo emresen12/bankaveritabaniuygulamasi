@@ -1,5 +1,4 @@
 package com.example.projeveriarayuz;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -11,12 +10,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox; // VBox importu eklendi
-import javafx.scene.paint.Color; // Renk importu eklendi
-import javafx.scene.text.Font; // Font importu eklendi
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -31,7 +29,7 @@ public class KrediBasvuruController implements Initializable {
 
     @FXML private ComboBox<String> cmbKrediTuru;
     @FXML private Label lblAciklama;
-    @FXML private VBox krediListesiContainer; // Kredileri listeleyen VBox
+    @FXML private VBox krediListesiContainer;
 
     private Map<String, Integer> urunAdiToIdMap = new HashMap<>();
     private Map<String, String> urunAdiToAciklamaMap = new HashMap<>();
@@ -64,7 +62,6 @@ public class KrediBasvuruController implements Initializable {
                 int id = rs.getInt("KrediTurID");
                 String ad = rs.getString("Ad");
                 String aciklama = rs.getString("Aciklama");
-
                 String birlesikUrunMetni = ad + " - " + aciklama.substring(0, Math.min(aciklama.length(), 30)) + "...";
 
                 urunler.add(birlesikUrunMetni);
@@ -101,7 +98,6 @@ public class KrediBasvuruController implements Initializable {
 
         try (Connection conn = DbConnection.getConnection()) {
 
-            // A. Mükerrer Başvuru Kontrolü
             try (PreparedStatement kontrolStmt = conn.prepareStatement(kontrolSql)) {
                 kontrolStmt.setInt(1, AppSession.getActiveMusteriId());
                 kontrolStmt.setInt(2, KREDI_GENEL_URUN_ID);
@@ -135,14 +131,9 @@ public class KrediBasvuruController implements Initializable {
         }
     }
 
-    // --- MEVCUT KREDİLERİ LİSTELEME (YENİ METOT) ---
     private void loadMevcutKrediler() {
-        // FXML'de bu VBox ID'sinin fx:id="krediListesiContainer" olduğundan emin olun!
-        if (krediListesiContainer == null) return; // FXML yüklenmemiş olabilir
-
+        if (krediListesiContainer == null) return;
         krediListesiContainer.getChildren().clear();
-
-        // Krediler tablosundan temel bilgileri çekiyoruz.
         String query = "SELECT KrediID, AnaPara, KalanBorc, VadeSayisi, FaizOrani, UrunID " +
                 "FROM Krediler WHERE MusteriID = ?";
 
@@ -175,8 +166,6 @@ public class KrediBasvuruController implements Initializable {
             e.printStackTrace();
         }
     }
-
-    // --- KREDİ KARTI OLUŞTURMA METODU (YENİ METOT) ---
     private VBox createKrediCard(int krediId, double anaPara, double kalanBorc, int vade, double faiz) {
         VBox card = new VBox();
         card.setSpacing(5);
@@ -203,7 +192,6 @@ public class KrediBasvuruController implements Initializable {
         return card;
     }
 
-    // --- GERİ BUTONU ---
     @FXML
     void getUrunlerAnaEkran(ActionEvent event) throws IOException {
 
@@ -216,7 +204,6 @@ public class KrediBasvuruController implements Initializable {
         stage.setScene(scene);
         stage.show();
     }
-
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

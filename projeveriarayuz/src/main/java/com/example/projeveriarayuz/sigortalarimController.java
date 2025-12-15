@@ -1,5 +1,4 @@
 package com.example.projeveriarayuz;
-
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,7 +15,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -29,13 +27,11 @@ public class sigortalarimController implements Initializable {
 
     @FXML
     private VBox sigortaListesiContainer;
-
     @FXML
     private ComboBox<String> cmbSigortaTuru;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // GÜVENLİK KONTROLÜ
+
         if (!AppSession.isUserLoggedIn()) {
             System.err.println("HATA: Oturum açılmamış!");
             Label lblHata = new Label("Lütfen önce giriş yapınız.");
@@ -44,18 +40,14 @@ public class sigortalarimController implements Initializable {
             return;
         }
 
-        // Ana Filtre ComboBox Seçenekleri
         cmbSigortaTuru.getItems().addAll("Tümü", "DASK", "Konut", "Kasko", "Trafik", "Sağlık", "BES");
         cmbSigortaTuru.getSelectionModel().select("Tümü");
 
-        // Seçim değiştiğinde mevcut poliçeleri listele
         cmbSigortaTuru.setOnAction(event -> loadMevcutSigortalar(cmbSigortaTuru.getValue()));
 
-        // İlk açılışta mevcut poliçeleri yükle
         loadMevcutSigortalar("Tümü");
     }
 
-    // --- BAŞVURU BUTONU ---
     @FXML
     void btnSatinAlClicked(ActionEvent event) {
         if (!AppSession.isUserLoggedIn()) {
@@ -76,7 +68,6 @@ public class sigortalarimController implements Initializable {
         grid.setPadding(new Insets(20, 150, 10, 10));
 
         ComboBox<String> cmbTurSecimi = new ComboBox<>();
-        // Not: Bu isimlerin Veritabanındaki 'SigortaTurleri' tablosundaki 'SigortaAdi' ile BİREBİR AYNI olması lazım.
         cmbTurSecimi.getItems().addAll("DASK", "Kasko", "Trafik", "Sağlık", "Konut Sigortası", "BES");
         cmbTurSecimi.getSelectionModel().selectFirst();
 
@@ -86,8 +77,7 @@ public class sigortalarimController implements Initializable {
 
         cmbTurSecimi.setOnAction(e -> {
             double fiyat = getTahminiFiyat(cmbTurSecimi.getValue());
-            lblFiyat.setText("Tahmini Tutar: " + fiyat + " TL");
-        });
+            lblFiyat.setText("Tahmini Tutar: " + fiyat + " TL");});
         lblFiyat.setText("Tahmini Tutar: " + getTahminiFiyat(cmbTurSecimi.getValue()) + " TL");
 
         grid.add(new Label("Sigorta Türü:"), 0, 0);
@@ -118,7 +108,6 @@ public class sigortalarimController implements Initializable {
     }
     private void basvuruYap(String sigortaTuru) {
         int sigortaTurID = findSigortaTurIdByName(sigortaTuru);
-        // Product tablosunda Sigorta'nın UrunID'si 4 olarak tanımlanmıştır (image_4402a2.png'ye göre).
         final int SIGORTA_GENEL_URUN_ID = 4;
 
         if (sigortaTurID == -1) {
@@ -194,11 +183,9 @@ public class sigortalarimController implements Initializable {
         return 1000.0;
     }
 
-    // --- MEVCUT POLİÇELERİ LİSTELEME ---
     private void loadMevcutSigortalar(String filtreTuru) {
         sigortaListesiContainer.getChildren().clear();
 
-        // Mevcut aktif poliçeler 'Sigorta' tablosundan çekiliyor.
         String query = "SELECT SigortaTuru, SigortaSirketi, Policeno, BitisTarihi, PrimTutari FROM Sigorta WHERE MusteriID = ?";
         if (!"Tümü".equals(filtreTuru)) {
             query += " AND SigortaTuru = ?";
