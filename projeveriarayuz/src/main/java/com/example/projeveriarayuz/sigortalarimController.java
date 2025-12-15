@@ -135,14 +135,14 @@ public class sigortalarimController implements Initializable {
 
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 insertStmt.setInt(1, AppSession.getActiveMusteriId());
-                insertStmt.setInt(2, SIGORTA_GENEL_URUN_ID); // UrunID=4 gönderiliyor (BOŞ KALMAZ)
-                insertStmt.setInt(3, sigortaTurID);        // SigortaTurID gönderiliyor (KAYBOLMAZ)
+                insertStmt.setInt(2, SIGORTA_GENEL_URUN_ID);
+                insertStmt.setInt(3, sigortaTurID);
 
                 int affectedRows = insertStmt.executeUpdate();
 
                 if (affectedRows > 0) {
                     showAlert(Alert.AlertType.INFORMATION, "Başarılı",
-                            sigortaTuru + " başvurunuz başarıyla alındı. \n'Başvurularım' sayfasından durumu takip edebilirsiniz.");
+                            sigortaTuru + " Başvurunuz başarıyla alındı.");
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Hata", "Başvuru oluşturulamadı.");
                 }
@@ -223,7 +223,6 @@ public class sigortalarimController implements Initializable {
             e.printStackTrace();
         }
     }
-
     private VBox createSigortaCard(String tur, String sirket, String policeNo, String bitis, double tutar) {
         VBox card = new VBox();
         card.setSpacing(5);

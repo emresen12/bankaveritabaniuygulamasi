@@ -8,9 +8,7 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #101721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.KayitController">
-
     <VBox alignment="CENTER" spacing="12" AnchorPane.leftAnchor="40" AnchorPane.rightAnchor="40" AnchorPane.topAnchor="20">
-
         <Label text="YENİ MÜŞTERİ KAYDI" textFill="white">
             <font>
                 <Font size="22" />

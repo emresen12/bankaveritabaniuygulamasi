@@ -1,5 +1,4 @@
 package com.example.projeveriarayuz;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +8,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -51,7 +49,6 @@ public class müsterianaekrancontroller {
         updateScreenData();
     }
 
-
     private void updateScreenData() {
         int activeMusteriId = AppSession.getActiveMusteriId(); // ID'yi AppSession'dan al
 
@@ -59,7 +56,6 @@ public class müsterianaekrancontroller {
             isimLabel.setText(AppSession.getKullaniciIsim());
             tcLabel.setText(AppSession.getKullaniciTC());
 
-            // 1. TOPLAM BAKİYEYİ HESAPLA VE YAZ
             double toplamBakiye = toplamBakiyeyiGetir(activeMusteriId);
             bakiyeLabel.setText(String.format("%.2f TL", toplamBakiye));
 
@@ -73,10 +69,8 @@ public class müsterianaekrancontroller {
         }
     }
 
-    // --- VERİTABANI: TOPLAM BAKİYE HESAPLAMA ---
     private double toplamBakiyeyiGetir(int musteriId) {
         double toplam = 0.0;
-        // Hesaplar tablosundaki Bakiye sütununu toplar
         String sql = "SELECT SUM(Bakiye) as ToplamBakiye FROM Hesaplar WHERE MusteriID = ?";
 
         try (Connection conn = DbConnection.getConnection();
@@ -96,7 +90,6 @@ public class müsterianaekrancontroller {
         return toplam;
     }
 
-    // --- VERİTABANI: LOG KAYDI ---
     private void girisLogunuKaydet(int musteriId) {
         // KullaniciLog tablosuna kayıt atar. GETDATE() SQL Server'ın o anki zamanıdır.
         String sql = "INSERT INTO KullaniciLog (MusteriID, IslemTipi, IPAdres, Tarih) VALUES (?, ?, ?, GETDATE())";
@@ -176,7 +169,6 @@ public class müsterianaekrancontroller {
         stage.setScene(new Scene(loader.load()));
         stage.show();
     }
-
 
     public void handleLogout(ActionEvent event) throws IOException {
         AppSession.clearSession(); // Oturumu temizle

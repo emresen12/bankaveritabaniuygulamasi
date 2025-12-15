@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -19,9 +20,8 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.sql.SQLException;
+import java.util.*;
 
 public class Hesaplarimcontroller implements Initializable {
 
@@ -172,10 +172,54 @@ public class Hesaplarimcontroller implements Initializable {
             showAlert(Alert.AlertType.ERROR, "Hata", "Sistem hatası: " + e.getMessage());
         }
     }
+    private void bagliKartlariGosterDialog(String hesapNo) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Hesaba Bağlı Kartlar");
+        dialog.setHeaderText(hesapNo + " nolu hesaba bağlı kartlar:");
+
+        ButtonType closeButton = new ButtonType("Kapat", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().add(closeButton);
+
+        VBox listContainer = new VBox(10);
+        listContainer.setPadding(new Insets(10));
+
+        // Veritabanından bu hesaba bağlı kartları çek (Statik metodumuzu kullanıyoruz)
+        // Not: Bu işlem için Kart.getMusteriKartlari metodunu filtreli hale getirmeli veya
+        // aşağıdakine benzer bir lokal sorgu yazmalısınız.
+        String sql = "SELECT KartNumarasi, KartTipi, Limit FROM Kartlar WHERE HesapNo = ?";
+
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, hesapNo);
+            ResultSet rs = ps.executeQuery();
+
+            boolean kartBulundu = false;
+            while (rs.next()) {
+                kartBulundu = true;
+                String no = rs.getString("KartNumarasi");
+                String tip = rs.getString("KartTipi");
+                double limit = rs.getDouble("Limit");
+
+                Label lblKart = new Label("💳 " + tip + " - " + no + " (Limit: " + limit + " TL)");
+                listContainer.getChildren().add(lblKart);
+            }
+
+            if (!kartBulundu) {
+                listContainer.getChildren().add(new Label("Bu hesaba bağlı bir kart bulunamadı."));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        dialog.getDialogPane().setContent(listContainer);
+        dialog.showAndWait();
+    }
 
     private VBox createHesapCard(String hesapNo, String tur, double bakiye) {
         VBox card = new VBox();
-        card.setSpacing(5);
+        card.setSpacing(10); // Boşlukları biraz artırdık
         card.setPrefWidth(280);
         card.setStyle("-fx-background-color: #182332; -fx-background-radius: 15; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
 
@@ -187,20 +231,92 @@ public class Hesaplarimcontroller implements Initializable {
         lblNo.setTextFill(Color.web("#aaaaaa"));
         lblNo.setFont(Font.font("System", 12));
 
-        Label lblBakiyeBaslik = new Label("Bakiye:");
-        lblBakiyeBaslik.setTextFill(Color.WHITE);
-
         Label lblTutar = new Label(bakiye + " TL");
         if(tur.contains("Dolar")) lblTutar.setText(bakiye + " $");
         else if(tur.contains("Euro")) lblTutar.setText(bakiye + " €");
-
         lblTutar.setTextFill(Color.web("#4CAF50"));
         lblTutar.setFont(Font.font("System", FontWeight.BOLD, 18));
+        // createHesapCard metodunun içine eklenecek kısım
+        Button btnKartBagla = new Button("Kart Bağla");
+        btnKartBagla.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand;");
+        btnKartBagla.setOnAction(e -> kartBaglaDialog(hesapNo));
 
-        card.getChildren().addAll(lblTur, lblNo, lblBakiyeBaslik, lblTutar);
+// Kartın sonuna butonu ekleyin
+        card.getChildren().add(btnKartBagla);
+
+        // --- YENİ: Bağlı Kartları Göster Butonu ---
+        Button btnKartlariGoster = new Button("Bağlı Kartları Gör");
+        btnKartlariGoster.setStyle("-fx-background-color: #2c3e50; -fx-text-fill: white; -fx-cursor: hand;");
+        btnKartlariGoster.setOnAction(e -> bagliKartlariGosterDialog(hesapNo));
+
+        card.getChildren().addAll(lblTur, lblNo, new Label("Bakiye:"), lblTutar, btnKartlariGoster);
         return card;
     }
+    private void kartBaglaDialog(String hesapNo) {
+        // 1. KONTROL: Bu hesaba bağlı kaç kart var? (Sınır: 3)
+        int bagliKartSayisi = getBagliKartSayisi(hesapNo);
+        if (bagliKartSayisi >= 3) {
+            showAlert(Alert.AlertType.WARNING, "Sınır Aşıldı", "Bir hesaba en fazla 3 kart bağlanabilir.");
+            return;
+        }
 
+        // 2. SEÇİM: Henüz bir hesaba bağlı olmayan kartları getir
+        List<String> bostaOlanKartlar = getBostaOlanKartlar();
+        if (bostaOlanKartlar.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "Kart Yok", "Bağlanabilecek boşta kartınız bulunmamaktadır.");
+            return;
+        }
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(bostaOlanKartlar.get(0), bostaOlanKartlar);
+        dialog.setTitle("Kart Bağla");
+        dialog.setHeaderText(hesapNo + " nolu hesaba kart bağla");
+        dialog.setContentText("Kart Seçiniz:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(secilenKartNo -> {
+            if (kartHesabaBagla(secilenKartNo, hesapNo)) {
+                showAlert(Alert.AlertType.INFORMATION, "Başarılı", "Kart başarıyla hesaba bağlandı.");
+            }
+        });
+    }
+    // Hesaba bağlı kart sayısını sorgular
+    private int getBagliKartSayisi(String hesapNo) {
+        String sql = "SELECT COUNT(*) FROM Kartlar WHERE HesapNo = ?";
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, hesapNo);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    // Boştaki (HesapNo'su NULL olan) kartları listeler
+    private List<String> getBostaOlanKartlar() {
+        List<String> kartlar = new ArrayList<>();
+        String sql = "SELECT KartNumarasi FROM Kartlar WHERE MusteriID = ? AND HesapNo IS NULL";
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, AppSession.getActiveMusteriId());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) kartlar.add(rs.getString("KartNumarasi"));
+        } catch (SQLException e) { e.printStackTrace(); }
+        return kartlar;
+    }
+
+    // SQL UPDATE ile kartı hesaba bağlar
+    private boolean kartHesabaBagla(String kartNo, String hesapNo) {
+        String sql = "UPDATE Kartlar SET HesapNo = ? WHERE KartNumarasi = ?";
+        try (Connection conn = DbConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, hesapNo);
+            ps.setString(2, kartNo);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     @FXML
     void getmusterianaekran(ActionEvent event) throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource("müsterianaekran.fxml"));

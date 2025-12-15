@@ -1,5 +1,4 @@
 package com.example.projeveriarayuz;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -13,7 +12,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,7 +24,6 @@ public class MusteriBasvurulariController {
     @FXML private TableColumn<Basvuru, String> urunAdiColumn;
     @FXML private TableColumn<Basvuru, String> tarihColumn;
     @FXML private TableColumn<Basvuru, String> durumColumn;
-
     @FXML private ComboBox<String> cmbBasvuruTuru;
 
     private int musteriId;
@@ -99,8 +96,7 @@ public class MusteriBasvurulariController {
                     String sigortaAdi = rs.getString("SigortaAdi");
                     String gorunecekAd;
 
-                    // Başvurulan Ürün Adını Belirleme Lojiği:
-                    // Detay ID'si dolu olanı önceliklendiriyoruz
+
                     if (krediAdi != null) {
                         gorunecekAd = "Kredi Başvurusu: " + krediAdi;
                     } else if (kartAdi != null) {
@@ -108,12 +104,10 @@ public class MusteriBasvurulariController {
                     } else if (sigortaAdi != null) {
                         gorunecekAd = "Sigorta Başvurusu: " + sigortaAdi;
                     } else if (urunTipi != null) {
-                        // Kredi/Kart/Sigorta detay ID'si yoksa genel Product adı kullanılır (Örn: Hesaplar)
                         gorunecekAd = urunTipi + " Başvurusu";
                     } else {
                         gorunecekAd = "Tanımsız Başvuru";
                     }
-
                     tumBasvurular.add(new Basvuru(basvuruID, gorunecekAd, tarih, durum));
                 }
             }
