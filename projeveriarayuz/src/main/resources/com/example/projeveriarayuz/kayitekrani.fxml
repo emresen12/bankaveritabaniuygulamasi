@@ -7,7 +7,12 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import java.net.URL?>
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #101721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.KayitController">
+    <stylesheets>
+        <URL value="@style.css" />
+    </stylesheets>
+
     <VBox alignment="CENTER" spacing="12" AnchorPane.leftAnchor="40" AnchorPane.rightAnchor="40" AnchorPane.topAnchor="20">
         <Label text="YENİ MÜŞTERİ KAYDI" textFill="white">
             <font>
@@ -25,12 +30,12 @@
 
         <TextField fx:id="phoneField" promptText="Telefon" style="-fx-background-color:#182332; -fx-text-fill:white; -fx-background-radius: 5;" />
 
-        <Button onAction="#kayitTamamla" prefHeight="40" prefWidth="100" style="-fx-background-color:#223D5A; -fx-text-fill:white; -fx-font-weight: bold; -fx-background-radius: 5;" text="KAYIT TAMAMLA" />
-
-
-        <Button onAction="#geriDon" prefHeight="40" prefWidth="100" style="-fx-background-color:#757575; -fx-text-fill:white; -fx-font-weight: bold; -fx-background-radius: 5;" text="GERİ DÖN" />
-
 
     </VBox>
+
+
+     <Button layoutX="103.0" layoutY="340.0" onAction="#geriDon" prefHeight="40" prefWidth="136.0" style="-fx-background-color:#757575; -fx-text-fill:white; -fx-font-weight: bold; -fx-background-radius: 5;" text="GERİ DÖN" />
+
+     <Button layoutX="103.0" layoutY="280.0" onAction="#kayitTamamla" prefHeight="40" prefWidth="136.0" style="-fx-background-color:#223D5A; -fx-text-fill:white; -fx-font-weight: bold; -fx-background-radius: 5;" text="KAYIT TAMAMLA" />
 
 </AnchorPane>
