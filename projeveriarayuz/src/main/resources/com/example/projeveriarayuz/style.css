@@ -1,0 +1,48 @@
+
+.combo-box .text {
+    -fx-fill: white !important;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white !important;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #1A2634; /* Listenin arka planını koyu yapar */
+    -fx-background-radius: 5;
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: white; /* Liste içindeki yazıların rengi */
+    -fx-background-color: #1A2634; /* Her bir satırın arka planı */
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #2A3D52; /* Üzerine gelince hafif parlama */
+}
+
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: #6BA3D1; /* Seçilen öğenin rengi (Mavi tonu) */
+}
+
+.table-view .table-cell {
+    -fx-text-fill: white !important;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white !important;
+}
+
+
+.combo-box-popup .list-view {
+    -fx-background-color: #1A2634 !important;
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: white !important;
+    -fx-background-color: #1A2634 !important;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #2A3D52 !important;
+}

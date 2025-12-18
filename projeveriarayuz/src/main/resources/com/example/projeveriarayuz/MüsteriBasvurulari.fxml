@@ -1,50 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.control.ComboBox?>
 
-<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.projeveriarayuz.MusteriBasvurulariController">
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.MusteriBasvurulariController">
+    <stylesheets>
+        <URL value="@style.css" />
+    </stylesheets>
 
-    <Button layoutX="8.0" layoutY="10.0" onAction="#getmusterianaekran"
-            style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
-    <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
+    <Button layoutX="8.0" layoutY="10.0" onAction="#getmusterianaekran" style="-fx-background-color: transparent; -fx-text-fill: #FFFF; -fx-font-size: 18; -fx-cursor: hand; -fx-padding: 5 10;" text="←">
+        <effect>
+            <DropShadow color="#00000040" radius="2" spread="0.1" />
+        </effect>
+    </Button>
 
-    <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
-        <Label style="-fx-font-weight: bold;" text="Başvuru Geçmişim" textFill="#0077cc">
-            <font><Font size="20" /></font>
+    <Label layoutX="45.0" layoutY="16.0" style="-fx-font-weight: 500; -fx-cursor: hand;" text="Geri" textFill="WHITE">
+        <font><Font size="13" /></font>
+    </Label>
+
+    <VBox alignment="CENTER_LEFT" layoutX="30.0" layoutY="50" prefWidth="300" spacing="8">
+        <Label style="-fx-font-weight: 600;" text="Başvuru Geçmişim" textFill="#FFFFFF">
+            <font><Font size="22" /></font>
+        </Label>
+        <Label text="Başvurularınızın durumunu takip edebilirsiniz" textFill="#8DA3B8">
+            <font><Font size="12" /></font>
         </Label>
     </VBox>
 
-    <VBox layoutX="30.0" layoutY="100.0" prefWidth="300" spacing="10">
+    <Line endX="330.0" endY="115.0" startX="30.0" startY="115.0" stroke="#1E2F42" strokeWidth="1.5" />
 
-        <Label text="Başvuru Türüne Göre Filtrele" style="-fx-font-weight: bold;" textFill="white">
-            <font><Font size="14" /></font>
-        </Label>
+    <VBox layoutX="30.0" layoutY="135.0" prefWidth="300" spacing="20">
 
-        <ComboBox fx:id="cmbBasvuruTuru" prefWidth="300" promptText="Tüm Başvurular" />
+        <VBox spacing="10">
+            <Label style="-fx-font-weight: 500;" text="Başvuru Türü" textFill="#FFFFFF">
+                <font><Font size="13" /></font>
+            </Label>
 
-        <Label text="Mevcut Başvurularınızın Durumu" style="-fx-font-weight: bold;" textFill="white">
-            <font><Font size="14" /></font>
-        </Label>
+            <ComboBox fx:id="cmbBasvuruTuru" prefWidth="300" promptText="Tüm Başvurular" style="-fx-background-color: #1A2634; -fx-prompt-text-fill: white; -fx-text-fill: white; -fx-background-radius: 6; -fx-border-color: #2A3D52; -fx-border-radius: 6; -fx-border-width: 1.5; -fx-font-size: 13;">
+            </ComboBox>
+        </VBox>
 
-        <TableView fx:id="basvuruTable" prefHeight="380.0" prefWidth="300.0"
-                   style="-fx-background-color: #182332;">
-            <columns>
-                <TableColumn fx:id="urunAdiColumn" prefWidth="120.0" text="Ürün Adı" />
-                <TableColumn fx:id="tarihColumn" prefWidth="90.0" text="Tarih" />
-                <TableColumn fx:id="durumColumn" prefWidth="90.0" text="Durum" />
-            </columns>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
-        </TableView>
+        <VBox spacing="12">
+            <Label style="-fx-font-weight: 500;" text="Başvuru Listesi" textFill="#FFFFFF">
+                <font><Font size="13" /></font>
+            </Label>
+
+            <TableView fx:id="basvuruTable" prefHeight="380.0" prefWidth="314.0" style="-fx-background-color: #1A2634; -fx-background-radius: 6; -fx-border-color: #2A3D52; -fx-border-radius: 6; -fx-border-width: 1.5; -fx-text-fill: white;">
+                <columns>
+                    <TableColumn fx:id="urunAdiColumn" prefWidth="107.20001220703125" style="-fx-background-color: #1E2F42; -fx-text-fill: white; -fx-alignment: CENTER-LEFT; -fx-font-size: 12; -fx-font-weight: 600;" text="Ürün Adı" />
+                    <TableColumn fx:id="tarihColumn" prefWidth="104.79998779296875" style="-fx-background-color: #1E2F42; -fx-text-fill: white; -fx-alignment: CENTER; -fx-font-size: 12; -fx-font-weight: 600;" text="Tarih" />
+                    <TableColumn fx:id="durumColumn" prefWidth="84.0" style="-fx-background-color: #1E2F42; -fx-text-fill: white; -fx-alignment: CENTER; -fx-font-size: 12; -fx-font-weight: 600;" text="Durum" />
+                </columns>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                </columnResizePolicy>
+            </TableView>
+        </VBox>
 
     </VBox>
+
 </AnchorPane>

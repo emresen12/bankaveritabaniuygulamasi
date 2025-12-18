@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
@@ -11,7 +10,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.müsteriöncelikligirissekmesicontroller">
+<?import java.net.URL?>
+<AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.müsterigirissekmesicontroller">
+    <stylesheets>
+        <URL value="@style.css" />
+    </stylesheets>
 
     <!-- Üst mavi alan -->
     <VBox alignment="CENTER" prefHeight="250.0" style="-fx-background-color: linear-gradient(to bottom, #003366, #0055aa);" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

@@ -7,7 +7,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import java.net.URL?>
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.sigortalarimController">
+    <stylesheets>
+        <URL value="@style.css" />
+    </stylesheets>
 
     <Button layoutX="8.0" layoutY="10.0" onAction="#getmusterianaekran" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
     <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />

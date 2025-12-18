@@ -2,58 +2,104 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #0F1721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.MusteriUrunlerController">
 
-    <Button layoutX="8.0" layoutY="10.0" onAction="#getmusterianaekran" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18;" text="←" />
-    <Label layoutX="39.0" layoutY="21.0" text="Geri" textFill="#efe8e8" underline="true" />
+    <!-- Üst Navigasyon -->
+    <Button layoutX="8.0" layoutY="10.0" onAction="#getmusterianaekran" style="-fx-background-color: transparent; -fx-text-fill: #FFFF; -fx-font-size: 18; -fx-cursor: hand; -fx-padding: 5 10;" text="←">
+        <effect>
+            <DropShadow color="#00000040" radius="2" spread="0.1" />
+        </effect>
+    </Button>
 
-    <VBox alignment="CENTER" layoutY="40" prefWidth="360" spacing="15">
-        <Label style="-fx-font-weight: bold;" text="Ürün Başvuru Merkezi" textFill="#0077cc">
-            <font><Font size="20" /></font>
+    <Label layoutX="45.0" layoutY="16.0" style="-fx-font-weight: 500; -fx-cursor: hand;" text="Geri" textFill="WHITE">
+        <font><Font size="13" /></font>
+    </Label>
+
+    <!-- Başlık Bölümü -->
+    <VBox alignment="CENTER_LEFT" layoutX="30.0" layoutY="50" prefWidth="300" spacing="8">
+        <Label style="-fx-font-weight: 600;" text="Ürün Başvuru Merkezi" textFill="#FFFFFF">
+            <font><Font size="22" /></font>
         </Label>
-        <Label text="Lütfen başvurmak istediğiniz ürün kategorisini seçiniz." textFill="#aaaaaa" />
+        <Label text="Başvurmak istediğiniz ürün kategorisini seçiniz" textFill="#8DA3B8">
+            <font><Font size="12" /></font>
+        </Label>
     </VBox>
 
-    <GridPane alignment="CENTER" hgap="20" layoutX="30" layoutY="150" prefWidth="300" vgap="20">
+    <Line endX="330.0" endY="115.0" startX="30.0" startY="115.0" stroke="#1E2F42" strokeWidth="1.5" />
 
-        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnHesapIslemleriClicked" GridPane.columnIndex="0" GridPane.rowIndex="0">
-            <ImageView fitHeight="40" fitWidth="40">
+    <!-- Ürün Kartları -->
+    <GridPane alignment="CENTER" hgap="15" layoutX="30" layoutY="145" prefWidth="300" vgap="15">
+
+        <!-- Hesaplar -->
+        <VBox alignment="CENTER" onMouseClicked="#btnHesapIslemleriClicked" prefHeight="140.0" prefWidth="142.5" spacing="10" style="-fx-background-color: #1A2634; -fx-background-radius: 6; -fx-border-color: #2A3D52; -fx-border-radius: 6; -fx-border-width: 1.5; -fx-padding: 15; -fx-cursor: hand;" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <ImageView fitHeight="45" fitWidth="45" preserveRatio="true">
                 <Image url="@banka_hesap_icon.png" />
             </ImageView>
-            <Label text="Hesaplar" textFill="white" />
-            <Button mnemonicParsing="false" onAction="#btnHesapIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+            <Label style="-fx-font-weight: 500; -fx-font-size: 14;" text="Hesaplar" textFill="#FFFFFF" />
+            <Button mnemonicParsing="false" onAction="#btnHesapIslemleriClicked" prefHeight="32" prefWidth="110" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-cursor: hand; -fx-font-size: 12;" text="BAŞVUR">
+                <effect>
+                    <DropShadow color="#0077cc40" radius="5" spread="0.2" />
+                </effect>
+            </Button>
         </VBox>
 
-        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnKrediIslemleriClicked" GridPane.columnIndex="1" GridPane.rowIndex="0">
-            <ImageView fitHeight="40" fitWidth="40">
+        <!-- Krediler -->
+        <VBox alignment="CENTER" onMouseClicked="#btnKrediIslemleriClicked" prefHeight="140.0" prefWidth="142.5" spacing="10" style="-fx-background-color: #1A2634; -fx-background-radius: 6; -fx-border-color: #2A3D52; -fx-border-radius: 6; -fx-border-width: 1.5; -fx-padding: 15; -fx-cursor: hand;" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <ImageView fitHeight="45" fitWidth="45" preserveRatio="true">
                 <Image url="@kredi_icon.png" />
             </ImageView>
-            <Label text="Krediler" textFill="white" />
-            <Button mnemonicParsing="false" onAction="#btnKrediIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+            <Label style="-fx-font-weight: 500; -fx-font-size: 14;" text="Krediler" textFill="#FFFFFF" />
+            <Button mnemonicParsing="false" onAction="#btnKrediIslemleriClicked" prefHeight="32" prefWidth="110" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-cursor: hand; -fx-font-size: 12;" text="BAŞVUR">
+                <effect>
+                    <DropShadow color="#0077cc40" radius="5" spread="0.2" />
+                </effect>
+            </Button>
         </VBox>
 
-        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnKartIslemleriClicked" GridPane.columnIndex="0" GridPane.rowIndex="1">
-            <ImageView fitHeight="40" fitWidth="40">
+        <!-- Kartlar -->
+        <VBox alignment="CENTER" onMouseClicked="#btnKartIslemleriClicked" prefHeight="140.0" prefWidth="142.5" spacing="10" style="-fx-background-color: #1A2634; -fx-background-radius: 6; -fx-border-color: #2A3D52; -fx-border-radius: 6; -fx-border-width: 1.5; -fx-padding: 15; -fx-cursor: hand;" GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <ImageView fitHeight="45" fitWidth="45" preserveRatio="true">
                 <Image url="@kart_icon.png" />
             </ImageView>
-            <Label text="Kartlar" textFill="white" />
-            <Button mnemonicParsing="false" onAction="#btnKartIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+            <Label style="-fx-font-weight: 500; -fx-font-size: 14;" text="Kartlar" textFill="#FFFFFF" />
+            <Button mnemonicParsing="false" onAction="#btnKartIslemleriClicked" prefHeight="32" prefWidth="110" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-cursor: hand; -fx-font-size: 12;" text="BAŞVUR">
+                <effect>
+                    <DropShadow color="#0077cc40" radius="5" spread="0.2" />
+                </effect>
+            </Button>
         </VBox>
 
-        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="140.0" style="-fx-background-color: #182332; -fx-background-radius: 15;" onMouseClicked="#btnSigortaIslemleriClicked" GridPane.columnIndex="1" GridPane.rowIndex="1">
-            <ImageView fitHeight="40" fitWidth="40">
+        <!-- Sigortalar -->
+        <VBox alignment="CENTER" onMouseClicked="#btnSigortaIslemleriClicked" prefHeight="140.0" prefWidth="142.5" spacing="10" style="-fx-background-color: #1A2634; -fx-background-radius: 6; -fx-border-color: #2A3D52; -fx-border-radius: 6; -fx-border-width: 1.5; -fx-padding: 15; -fx-cursor: hand;" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <ImageView fitHeight="45" fitWidth="45" preserveRatio="true">
                 <Image url="@sigorta_icon.png" />
             </ImageView>
-            <Label text="Sigortalar" textFill="white" />
-            <Button mnemonicParsing="false" onAction="#btnSigortaIslemleriClicked" prefWidth="120" text="BAŞVUR" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 5; margin-top: 5px;" />
+            <Label style="-fx-font-weight: 500; -fx-font-size: 14;" text="Sigortalar" textFill="#FFFFFF" />
+            <Button mnemonicParsing="false" onAction="#btnSigortaIslemleriClicked" prefHeight="32" prefWidth="110" style="-fx-background-color: #0077cc; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-cursor: hand; -fx-font-size: 12;" text="BAŞVUR">
+                <effect>
+                    <DropShadow color="#0077cc40" radius="5" spread="0.2" />
+                </effect>
+            </Button>
         </VBox>
+      <columnConstraints>
+         <ColumnConstraints />
+         <ColumnConstraints />
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints />
+         <RowConstraints />
+      </rowConstraints>
 
     </GridPane>
 </AnchorPane>

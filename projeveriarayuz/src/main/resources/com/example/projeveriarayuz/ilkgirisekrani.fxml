@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
@@ -8,7 +7,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import java.net.URL?>
 <AnchorPane prefHeight="640" prefWidth="360" style="-fx-background-color: #101721;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.projeveriarayuz.ilkgirisekranicontroller">
+   <stylesheets>
+      <URL value="@style.css" />
+   </stylesheets>
 
    <!-- Buton Alanı -->
    <VBox alignment="CENTER" layoutX="40.0" layoutY="320.0" spacing="20" AnchorPane.leftAnchor="40.0" AnchorPane.rightAnchor="40.0" AnchorPane.topAnchor="320.0" />
@@ -18,7 +21,7 @@
          <Image url="@sonhalibankaresmi.png" />
       </image>
    </ImageView>
-   <Label layoutX="120.0" layoutY="81.0" text="WELCOME!" textFill="white">
+   <Label layoutX="98.0" layoutY="84.0" text="HOŞ GELDİNİZ!" textFill="white">
       <font>
          <Font size="24" />
       </font>
