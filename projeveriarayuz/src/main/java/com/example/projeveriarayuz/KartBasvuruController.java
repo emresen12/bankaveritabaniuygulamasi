@@ -1,4 +1,5 @@
 package com.example.projeveriarayuz;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -29,15 +30,15 @@ public class KartBasvuruController implements Initializable {
 
     @FXML private ComboBox<String> cmbKartTuru;
     @FXML private Label lblAciklama;
-    @FXML private VBox kartListesiContainer; // Kartları listeleyen VBox
+    @FXML private VBox kartListesiContainer;
 
     private Map<String, Integer> urunAdiToIdMap = new HashMap<>();
     private Map<String, String> urunAdiToAciklamaMap = new HashMap<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        loadAvailableKartProducts(); // Başvuru ComboBox'ını yükler
-        loadMevcutKartlar();         // Onaylanmış Kartları listeler
+        loadAvailableKartProducts();
+        loadMevcutKartlar();
 
         cmbKartTuru.setOnAction(event -> {
             String secilenAd = cmbKartTuru.getValue();
@@ -51,7 +52,6 @@ public class KartBasvuruController implements Initializable {
 
     private void loadAvailableKartProducts() {
         ObservableList<String> urunler = FXCollections.observableArrayList();
-
         String sql = "SELECT KartTurID, Ad, Aciklama FROM KartTurleri";
 
         try (Connection conn = DbConnection.getConnection();
@@ -78,7 +78,6 @@ public class KartBasvuruController implements Initializable {
 
     @FXML
     void basvuruYap(ActionEvent event) {
-
         String secilenUrunMetni = cmbKartTuru.getSelectionModel().getSelectedItem();
 
         if (secilenUrunMetni == null || secilenUrunMetni.isEmpty()) {
@@ -87,7 +86,6 @@ public class KartBasvuruController implements Initializable {
         }
 
         Integer kartTurID = urunAdiToIdMap.get(secilenUrunMetni);
-
         if (kartTurID == null) {
             showAlert(Alert.AlertType.ERROR, "Hata", "Seçilen Kart türüne ait ID bulunamadı.");
             return;
@@ -95,11 +93,12 @@ public class KartBasvuruController implements Initializable {
 
         final int KART_GENEL_URUN_ID = 2;
 
-        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND KartTurID = ? AND BasvuruDurumu = 'Inceleniyor'";
-        String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, KartTurID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
+        // GÜNCELLEME: KartTurID sütunu silindiği için AltUrunID kullanıyoruz
+        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND AltUrunID = ? AND BasvuruDurumu = 'Inceleniyor'";
+        String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, AltUrunID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
 
         try (Connection conn = DbConnection.getConnection()) {
-
+            // Kontrol İşlemi
             try (PreparedStatement kontrolStmt = conn.prepareStatement(kontrolSql)) {
                 kontrolStmt.setInt(1, AppSession.getActiveMusteriId());
                 kontrolStmt.setInt(2, KART_GENEL_URUN_ID);
@@ -113,13 +112,13 @@ public class KartBasvuruController implements Initializable {
                 }
             }
 
+            // Ekleme İşlemi
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 insertStmt.setInt(1, AppSession.getActiveMusteriId());
-                insertStmt.setInt(2, KART_GENEL_URUN_ID); // UrunID=2
-                insertStmt.setInt(3, kartTurID);        // KartTurID
+                insertStmt.setInt(2, KART_GENEL_URUN_ID);
+                insertStmt.setInt(3, kartTurID);
 
                 int affectedRows = insertStmt.executeUpdate();
-
                 if (affectedRows > 0) {
                     showAlert(Alert.AlertType.INFORMATION, "Başarılı",
                             secilenUrunMetni + " Başvurunuz başarıyla alındı.");
@@ -135,15 +134,12 @@ public class KartBasvuruController implements Initializable {
 
     private void loadMevcutKartlar() {
         kartListesiContainer.getChildren().clear();
-
-        String query = "SELECT KartNumarasi, KartTipi, Limit, GuncelBorc, SonKullanmaTarihi " +
-                "FROM Kartlar WHERE MusteriID = ?";
+        String query = "SELECT KartNumarasi, KartTipi, Limit, GuncelBorc FROM Kartlar WHERE MusteriID = ?";
 
         try (Connection connect = DbConnection.getConnection();
              PreparedStatement listele = connect.prepareStatement(query)) {
 
             listele.setInt(1, AppSession.getActiveMusteriId());
-
             ResultSet result = listele.executeQuery();
             boolean kayitVarmi = false;
 
@@ -161,15 +157,13 @@ public class KartBasvuruController implements Initializable {
                 lbl.setTextFill(Color.GRAY);
                 kartListesiContainer.getChildren().add(lbl);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private VBox createKartCard(String kartNo, String tip, double limit, double borc) {
-        VBox card = new VBox();
-        card.setSpacing(5);
+        VBox card = new VBox(5);
         card.setPrefWidth(280);
         card.setStyle("-fx-background-color: #182332; -fx-background-radius: 15; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
 
@@ -177,7 +171,7 @@ public class KartBasvuruController implements Initializable {
         lblTip.setTextFill(Color.web("#0077cc"));
         lblTip.setFont(Font.font("System", FontWeight.BOLD, 16));
 
-        String gizliKartNo = "**** **** **** " + kartNo.substring(kartNo.length() - 4);
+        String gizliKartNo = "**** **** **** " + (kartNo.length() > 4 ? kartNo.substring(kartNo.length() - 4) : "****");
         Label lblNo = new Label("Kart No: " + gizliKartNo);
         lblNo.setTextFill(Color.WHITE);
 
@@ -193,14 +187,13 @@ public class KartBasvuruController implements Initializable {
 
     @FXML
     void getUrunlerAnaEkran(ActionEvent event) throws IOException {
-
         FXMLLoader loader = new FXMLLoader(getClass().getResource("müsterianaekran.fxml"));
         Parent root = loader.load();
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
+        stage.setScene(new Scene(root));
         stage.show();
     }
+
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
