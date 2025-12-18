@@ -62,22 +62,23 @@ public class MusteriBasvurulariController {
 
         tumBasvurular.clear();
 
-        // SQL: Tüm başvuruları çekerken 4 farklı tabloya JOIN yapıyoruz (Product, KrediTurleri, KartTurleri, SigortaTurleri)
+        // YENİ SQL: AltUrunID kullanarak her tabloya ilgili UrunID ile JOIN yapıyoruz
         String sql = "SELECT " +
                 " B.BasvuruID, " +
                 " B.BasvuruTarihi, " +
                 " B.BasvuruDurumu, " +
-                " P.UrunTipi, " +
-                " P.Aciklama, " + // Product'tan genel açıklama (Hesap başvurusu gibi durumlarda kullanılabilir)
+                " B.UrunID, " +
                 " KT.Ad AS KrediAdi, " +
                 " KA.Ad AS KartAdi, " +
-                " S.SigortaAdi " +
+                " S.SigortaAdi, " +
+                " HT.Ad AS HesapAdi " +
                 "FROM Basvuru B " +
-                "LEFT JOIN Product P ON B.UrunID = P.UrunID " +
-                "LEFT JOIN KrediTurleri KT ON B.KrediTurID = KT.KrediTurID " +
-                "LEFT JOIN KartTurleri KA ON B.KartTurID = KA.KartTurID " +
-                "LEFT JOIN SigortaTurleri S ON B.SigortaTurID = S.SigortaTurID " +
-                "WHERE B.MusteriID = ?";
+                "LEFT JOIN KrediTurleri KT ON B.AltUrunID = KT.KrediTurID AND B.UrunID = 1 " +
+                "LEFT JOIN KartTurleri KA ON B.AltUrunID = KA.KartTurID AND B.UrunID = 2 " +
+                "LEFT JOIN HesapTurleri HT ON B.AltUrunID = HT.HesapTurID AND B.UrunID = 3 " +
+                "LEFT JOIN SigortaTurleri S ON B.AltUrunID = S.SigortaTurID AND B.UrunID = 4 " +
+                "WHERE B.MusteriID = ? " +
+                "ORDER BY B.BasvuruTarihi DESC";
 
         try (Connection conn = DbConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -89,25 +90,26 @@ public class MusteriBasvurulariController {
                     int basvuruID = rs.getInt("BasvuruID");
                     String tarih = rs.getString("BasvuruTarihi");
                     String durum = rs.getString("BasvuruDurumu");
+                    int urunID = rs.getInt("UrunID");
 
-                    String urunTipi = rs.getString("UrunTipi");
-                    String krediAdi = rs.getString("KrediAdi");
-                    String kartAdi = rs.getString("KartAdi");
-                    String sigortaAdi = rs.getString("SigortaAdi");
-                    String gorunecekAd;
+                    String gorunecekAd = "Bilinmeyen Ürün";
 
-
-                    if (krediAdi != null) {
-                        gorunecekAd = "Kredi Başvurusu: " + krediAdi;
-                    } else if (kartAdi != null) {
-                        gorunecekAd = "Kart Başvurusu: " + kartAdi;
-                    } else if (sigortaAdi != null) {
-                        gorunecekAd = "Sigorta Başvurusu: " + sigortaAdi;
-                    } else if (urunTipi != null) {
-                        gorunecekAd = urunTipi + " Başvurusu";
-                    } else {
-                        gorunecekAd = "Tanımsız Başvuru";
+                    // UrunID'ye göre hangi JOIN'den veri geldiğini kontrol ediyoruz
+                    switch (urunID) {
+                        case 1: // Kredi
+                            gorunecekAd = "Kredi: " + rs.getString("KrediAdi");
+                            break;
+                        case 2: // Kart
+                            gorunecekAd = "Kart: " + rs.getString("KartAdi");
+                            break;
+                        case 3: // Hesap
+                            gorunecekAd = "Hesap: " + rs.getString("HesapAdi");
+                            break;
+                        case 4: // Sigorta
+                            gorunecekAd = "Sigorta: " + rs.getString("SigortaAdi");
+                            break;
                     }
+
                     tumBasvurular.add(new Basvuru(basvuruID, gorunecekAd, tarih, durum));
                 }
             }
@@ -115,7 +117,7 @@ public class MusteriBasvurulariController {
             basvuruTable.setItems(tumBasvurular);
 
         } catch (SQLException e) {
-            System.err.println("Veritabanı Hatası (Başvurular): " + e.getMessage());
+            e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Hata", "Başvurular yüklenirken hata oluştu.");
         }
     }

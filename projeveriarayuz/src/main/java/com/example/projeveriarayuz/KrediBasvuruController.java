@@ -1,4 +1,5 @@
 package com.example.projeveriarayuz;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -37,7 +38,7 @@ public class KrediBasvuruController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadAvailableKrediProducts(); // Başvuru ComboBox'ını yükler
-        loadMevcutKrediler();         // Onaylanmış Kredileri listeler (YENİ)
+        loadMevcutKrediler();         // Onaylanmış Kredileri listeler
 
         cmbKrediTuru.setOnAction(event -> {
             String secilenAd = cmbKrediTuru.getValue();
@@ -51,7 +52,6 @@ public class KrediBasvuruController implements Initializable {
 
     private void loadAvailableKrediProducts() {
         ObservableList<String> urunler = FXCollections.observableArrayList();
-
         String sql = "SELECT KrediTurID, Ad, Aciklama FROM KrediTurleri";
 
         try (Connection conn = DbConnection.getConnection();
@@ -77,7 +77,6 @@ public class KrediBasvuruController implements Initializable {
 
     @FXML
     void basvuruYap(ActionEvent event) {
-
         String secilenUrunMetni = cmbKrediTuru.getSelectionModel().getSelectedItem();
         if (secilenUrunMetni == null || secilenUrunMetni.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen başvurmak istediğiniz bir Kredi Türü seçiniz.");
@@ -85,7 +84,6 @@ public class KrediBasvuruController implements Initializable {
         }
 
         Integer krediTurID = urunAdiToIdMap.get(secilenUrunMetni);
-
         if (krediTurID == null) {
             showAlert(Alert.AlertType.ERROR, "Hata", "Seçilen Kredi türüne ait ID bulunamadı.");
             return;
@@ -93,11 +91,12 @@ public class KrediBasvuruController implements Initializable {
 
         final int KREDI_GENEL_URUN_ID = 1;
 
-        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND KrediTurID = ? AND BasvuruDurumu = 'Inceleniyor'";
-        String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, KrediTurID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
+        // GÜNCELLEME: Sorgularda KrediTurID yerine AltUrunID kullanıyoruz
+        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND AltUrunID = ? AND BasvuruDurumu = 'Inceleniyor'";
+        String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, AltUrunID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
 
         try (Connection conn = DbConnection.getConnection()) {
-
+            // Mükerrer Başvuru Kontrolü
             try (PreparedStatement kontrolStmt = conn.prepareStatement(kontrolSql)) {
                 kontrolStmt.setInt(1, AppSession.getActiveMusteriId());
                 kontrolStmt.setInt(2, KREDI_GENEL_URUN_ID);
@@ -111,13 +110,13 @@ public class KrediBasvuruController implements Initializable {
                 }
             }
 
+            // Yeni Başvuru Kaydı
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 insertStmt.setInt(1, AppSession.getActiveMusteriId());
-                insertStmt.setInt(2, KREDI_GENEL_URUN_ID);
-                insertStmt.setInt(3, krediTurID);
+                insertStmt.setInt(2, KREDI_GENEL_URUN_ID); // UrunID = 1
+                insertStmt.setInt(3, krediTurID);         // AltUrunID sütununa yazılır
 
                 int affectedRows = insertStmt.executeUpdate();
-
                 if (affectedRows > 0) {
                     showAlert(Alert.AlertType.INFORMATION, "Başarılı",
                             secilenUrunMetni + " başvurunuz başarıyla alındı.");
@@ -134,14 +133,13 @@ public class KrediBasvuruController implements Initializable {
     private void loadMevcutKrediler() {
         if (krediListesiContainer == null) return;
         krediListesiContainer.getChildren().clear();
-        String query = "SELECT KrediID, AnaPara, KalanBorc, VadeSayisi, FaizOrani, UrunID " +
+        String query = "SELECT KrediID, AnaPara, KalanBorc, VadeSayisi, FaizOrani " +
                 "FROM Krediler WHERE MusteriID = ?";
 
         try (Connection connect = DbConnection.getConnection();
              PreparedStatement listele = connect.prepareStatement(query)) {
 
             listele.setInt(1, AppSession.getActiveMusteriId());
-
             ResultSet result = listele.executeQuery();
             boolean kayitVarmi = false;
 
@@ -161,14 +159,13 @@ public class KrediBasvuruController implements Initializable {
                 lbl.setTextFill(Color.GRAY);
                 krediListesiContainer.getChildren().add(lbl);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     private VBox createKrediCard(int krediId, double anaPara, double kalanBorc, int vade, double faiz) {
-        VBox card = new VBox();
-        card.setSpacing(5);
+        VBox card = new VBox(5);
         card.setPrefWidth(280);
         card.setStyle("-fx-background-color: #182332; -fx-background-radius: 15; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
 
@@ -194,16 +191,13 @@ public class KrediBasvuruController implements Initializable {
 
     @FXML
     void getUrunlerAnaEkran(ActionEvent event) throws IOException {
-
         FXMLLoader loader = new FXMLLoader(getClass().getResource("müsterianaekran.fxml"));
         Parent root = loader.load();
-
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
+        stage.setScene(new Scene(root));
         stage.show();
     }
+
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

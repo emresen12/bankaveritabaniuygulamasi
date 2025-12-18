@@ -107,23 +107,28 @@ public class sigortalarimController implements Initializable {
         });
     }
     private void basvuruYap(String sigortaTuru) {
+        // 1. SigortaTurleri tablosundan ilgili adın ID karşılığını alıyoruz
         int sigortaTurID = findSigortaTurIdByName(sigortaTuru);
-        final int SIGORTA_GENEL_URUN_ID = 4;
+        final int SIGORTA_GENEL_URUN_ID = 4; // Sigorta ana kategori ID'si
 
         if (sigortaTurID == -1) {
             showAlert(Alert.AlertType.ERROR, "Hata",
-                    "Seçilen sigorta türü (" + sigortaTuru + ") veritabanında 'SigortaTurleri' tablosunda bulunamadı.");
+                    "Seçilen sigorta türü (" + sigortaTuru + ") veritabanında bulunamadı.");
             return;
         }
 
-        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND SigortaTurID = ? AND BasvuruDurumu = 'Inceleniyor'";
-        String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, SigortaTurID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
+        // YENİ YAPI: Artık SigortaTurID yerine AltUrunID sütununu sorguluyoruz
+        String kontrolSql = "SELECT COUNT(*) FROM Basvuru WHERE MusteriID = ? AND UrunID = ? AND AltUrunID = ? AND BasvuruDurumu = 'Inceleniyor'";
+        String insertSql = "INSERT INTO Basvuru (MusteriID, UrunID, AltUrunID, BasvuruTarihi, BasvuruDurumu) VALUES (?, ?, ?, GETDATE(), 'Inceleniyor')";
 
         try (Connection conn = DbConnection.getConnection()) {
+
+            // --- ADIM 1: Mükerrer Başvuru Kontrolü ---
             try (PreparedStatement kontrolStmt = conn.prepareStatement(kontrolSql)) {
                 kontrolStmt.setInt(1, AppSession.getActiveMusteriId());
                 kontrolStmt.setInt(2, SIGORTA_GENEL_URUN_ID);
-                kontrolStmt.setInt(3, sigortaTurID); // SigortaTurID kontrolü de yapılıyor
+                kontrolStmt.setInt(3, sigortaTurID); // Veritabanındaki AltUrunID alanına denk gelir
+
                 try (ResultSet rs = kontrolStmt.executeQuery()) {
                     if (rs.next() && rs.getInt(1) > 0) {
                         showAlert(Alert.AlertType.INFORMATION, "Başvuru Mevcut",
@@ -133,16 +138,17 @@ public class sigortalarimController implements Initializable {
                 }
             }
 
+            // --- ADIM 2: Yeni Başvuru Kaydı ---
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                 insertStmt.setInt(1, AppSession.getActiveMusteriId());
-                insertStmt.setInt(2, SIGORTA_GENEL_URUN_ID);
-                insertStmt.setInt(3, sigortaTurID);
+                insertStmt.setInt(2, SIGORTA_GENEL_URUN_ID); // Sabit 4 (Sigorta)
+                insertStmt.setInt(3, sigortaTurID);          // AltUrunID sütununa yazılır
 
                 int affectedRows = insertStmt.executeUpdate();
 
                 if (affectedRows > 0) {
                     showAlert(Alert.AlertType.INFORMATION, "Başarılı",
-                            sigortaTuru + " Başvurunuz başarıyla alındı.");
+                            sigortaTuru + " başvurunuz başarıyla alındı. Onaylandığında poliçeniz oluşturulacaktır.");
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Hata", "Başvuru oluşturulamadı.");
                 }
@@ -150,7 +156,7 @@ public class sigortalarimController implements Initializable {
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Hata", "Sistem hatası: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Sistem Hatası", "Veritabanı işlemi sırasında bir hata oluştu: " + e.getMessage());
         }
     }
 
