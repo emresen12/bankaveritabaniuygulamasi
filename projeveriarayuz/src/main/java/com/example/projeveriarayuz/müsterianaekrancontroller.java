@@ -26,6 +26,7 @@ public class müsterianaekrancontroller {
     @FXML private Button sigortalarımButton;
     @FXML private Button hesaplarımButton;
     @FXML private Button ürünlerButton;
+    @FXML private Button hesaphareketleri;
 
     @FXML private ImageView imgOdeme;
     @FXML private ImageView imgTransfer;
@@ -169,6 +170,13 @@ public class müsterianaekrancontroller {
         stage.setScene(new Scene(loader.load()));
         stage.show();
     }
+    public void getHesapHareketleri(ActionEvent event) throws IOException{
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("hesaphareketleri.fxml"));
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        stage.setScene(new Scene(loader.load()));
+        stage.show();
+    }
+
 
     public void handleLogout(ActionEvent event) throws IOException {
         AppSession.clearSession(); // Oturumu temizle
