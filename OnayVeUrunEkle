@@ -1,0 +1,129 @@
+
+**********ONAY VE ÜRÜN EKLE ***********************
+    
+    ALTER PROCEDURE OnayVeUrunEkle
+        @BasvuruID INT,
+        @KrediTutari DECIMAL(18,2) = NULL 
+    AS
+    BEGIN
+        SET XACT_ABORT ON;
+        SET NOCOUNT ON;
+        
+        DECLARE @MusteriID INT, @UrunID INT, @AltUrunID INT;
+        DECLARE @PrimTutari DECIMAL(18,2);
+        DECLARE @KaynakHesap NVARCHAR(50);
+        DECLARE @UrunAdi NVARCHAR(100); -- Ürün adlarını burada tutuyoruz
+        DECLARE @YeniNumara NVARCHAR(20);
+        
+        DECLARE @HamDurum NVARCHAR(100); 
+        DECLARE @OkunanTutar DECIMAL(18,2); 
+    
+        BEGIN TRY
+            BEGIN TRANSACTION;
+    
+            -- 1. Başvuru Bilgilerini Al
+            SELECT 
+                @MusteriID = MusteriID, 
+                @UrunID = UrunID, 
+                @AltUrunID = AltUrunID,
+                @HamDurum = BasvuruDurumu
+            FROM Basvuru WHERE BasvuruID = @BasvuruID;
+    
+            IF @MusteriID IS NULL BEGIN ROLLBACK; RETURN; END
+    
+            SET @OkunanTutar = NULL;
+            IF CHARINDEX('#', @HamDurum) > 0
+            BEGIN
+                BEGIN TRY
+                    SET @OkunanTutar = CAST(SUBSTRING(@HamDurum, CHARINDEX('#', @HamDurum) + 1, LEN(@HamDurum)) AS DECIMAL(18,2));
+                END TRY
+                BEGIN CATCH
+                    SET @OkunanTutar = NULL;
+                END CATCH
+            END
+            --  SİGORTA (UrunID = 4) --
+            IF @UrunID = 4
+            BEGIN
+                SELECT @UrunAdi = SigortaAdi, @PrimTutari = PrimTutari FROM SigortaTurleri WHERE SigortaTurID = @AltUrunID;
+                
+                IF @PrimTutari IS NULL SET @PrimTutari = 0;
+    
+                SELECT TOP 1 @KaynakHesap = HesapNo FROM Hesaplar WHERE MusteriID = @MusteriID AND Bakiye >= @PrimTutari ORDER BY Bakiye DESC;
+                IF @KaynakHesap IS NULL BEGIN PRINT 'Yetersiz bakiye.'; ROLLBACK; RETURN; END
+    
+                UPDATE Hesaplar SET Bakiye = Bakiye - @PrimTutari WHERE HesapNo = @KaynakHesap;
+    
+                INSERT INTO Islemler (KaynakHesapNo, HedefHesapNo, IslemTuru, IslemTutari, IslemTarihi)
+                VALUES (@KaynakHesap, 'BANKA_SIGORTA', ISNULL(@UrunAdi, 'Sigorta') + ' Prim Ödemesi', @PrimTutari, GETDATE());
+    
+                SET @YeniNumara = 'POL' + LEFT(CAST(ABS(CHECKSUM(NEWID())) AS NVARCHAR(20)) + '0000000000', 10);
+    
+                INSERT INTO Sigorta (MusteriID, BasvuruID, SigortaTuru, SigortaSirketi, PoliceNo, BaslangicTarihi, BitisTarihi, PrimTutari)
+                VALUES (@MusteriID, @BasvuruID, @UrunAdi, 'Bankamız Sigorta', @YeniNumara, GETDATE(), DATEADD(YEAR, 1, GETDATE()), @PrimTutari);
+            END
+    
+            --  KART İŞLEMİ (UrunID = 2) --
+            ELSE IF @UrunID = 2
+            BEGIN
+                SELECT @UrunAdi = Ad FROM KartTurleri WHERE KartTurID = @AltUrunID;
+    
+                SET @YeniNumara = '4444' + LEFT(REPLACE(CAST(NEWID() AS NVARCHAR(50)),'-','') + '000000000000', 12);
+    
+                INSERT INTO Kartlar (MusteriID, UrunID, BasvuruID, KartNumarasi, KartTipi, SonKullanmaTarihi, CVC, [Limit], GuncelBorc)
+                VALUES (@MusteriID, @UrunID, @BasvuruID, @YeniNumara, ISNULL(@UrunAdi, 'Kredi Kartı'), DATEADD(YEAR, 5, GETDATE()), ABS(CHECKSUM(NEWID())) % 899 + 100, (ABS(CHECKSUM(NEWID())) % 15000 + 5000), 0);
+            END
+            -- HESAP (UrunID = 3) --
+            ELSE IF @UrunID = 3
+            BEGIN
+                SELECT @UrunAdi = Ad FROM HesapTurleri WHERE HesapTurID = @AltUrunID;
+                
+                SET @YeniNumara = 'TR' + LEFT(REPLACE(CAST(ABS(CHECKSUM(NEWID())) AS NVARCHAR(20)), '-', '') + '0000000000', 10) + RIGHT('0000' + CAST(@BasvuruID AS NVARCHAR(10)), 4);
+                
+                INSERT INTO Hesaplar (MusteriID, HesapNo, HesapTuru, Bakiye, BasvuruID)
+                VALUES (@MusteriID, @YeniNumara, ISNULL(@UrunAdi, 'Vadesiz Hesap'), 0, @BasvuruID);
+            END
+            --  KREDİ (UrunID = 1) --
+            ELSE IF @UrunID = 1
+            BEGIN
+                SELECT @UrunAdi = Ad FROM KrediTurleri WHERE KrediTurID = @AltUrunID;
+    
+                DECLARE @FinalTutar DECIMAL(18,2) = COALESCE(@KrediTutari, @OkunanTutar, (ABS(CHECKSUM(NEWID())) % 50000 + 5000));
+                SET @YeniNumara = 'KREDI-' + CAST(@BasvuruID AS NVARCHAR(20));
+                
+                INSERT INTO Krediler (MusteriID, BasvuruID, UrunID, AnaPara, KalanBorc, VadeSayisi, FaizOrani)
+                VALUES (@MusteriID, @BasvuruID, @UrunID, @FinalTutar, @FinalTutar, 36, 0.0210);
+            END
+    
+            INSERT INTO MusteriUrun (MusteriID, UrunID, BaslangicTarihi, HesapNumarasi, BasvuruID)
+            VALUES (@MusteriID, @UrunID, GETDATE(), @YeniNumara, @BasvuruID);
+    
+            UPDATE Basvuru SET BasvuruDurumu = 'Onaylandı', BasvuruKabulTarihi = GETDATE()
+            WHERE BasvuruID = @BasvuruID;
+    
+            COMMIT TRANSACTION;
+        END TRY
+        BEGIN CATCH
+            IF @@TRANCOUNT > 0 ROLLBACK;
+            DECLARE @HataMsg NVARCHAR(MAX) = ERROR_MESSAGE();
+            RAISERROR(@HataMsg, 16, 1);
+        END CATCH
+    END
+
+
+
+************* ONAYLA ***************
+  EXEC OnayVeUrunEkle @BasvuruID = 15;
+
+
+*************REDDET***************
+      UPDATE Basvuru
+      SET BasvuruDurumu = 'Reddedildi',
+          BasvuruKabulTarihi = GETDATE() -- İşlem tarihi olarak kaydedilir
+      WHERE BasvuruID = 2;
+
+
+
+
+
+
+
