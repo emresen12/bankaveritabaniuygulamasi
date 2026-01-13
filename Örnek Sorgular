@@ -1,0 +1,73 @@
+******* 1. SORGU: 
+      SELECT 
+          m.Ad, 
+          m.Soyad, 
+          COUNT(h.HesapNo) AS ToplamHesapSayisi, 
+          SUM(h.Bakiye) AS ToplamVarlik,
+          STRING_AGG(CAST(h.HesapTuru AS NVARCHAR(MAX)), ', ') AS SahipOlduguHesapTurleri
+      FROM Musteri m
+      JOIN Hesaplar h ON m.MusteriID = h.MusteriID
+      GROUP BY m.MusteriID, m.Ad, m.Soyad
+      HAVING SUM(h.Bakiye) > 10000
+      ORDER BY ToplamVarlik DESC;
+
+
+******* 2. SORGU: 
+
+        SELECT 
+            st.SigortaAdi, 
+            COUNT(s.SigortaID) AS PoliceSayisi, 
+            AVG(s.SigortaBedeli) AS OrtalamaBedel,
+            MAX(s.SigortaBedeli) AS EnYuksekBedel
+        FROM Sigorta s
+        JOIN SigortaTurleri st ON s.SigortaTuru = st.SigortaAdi
+        JOIN Musteri m ON s.MusteriID = m.MusteriID
+        GROUP BY st.SigortaAdi
+        HAVING AVG(s.SigortaBedeli) > 2000;
+
+
+
+******** 3. SORGU
+      SELECT  
+          m.Ad + ' ' + m.Soyad AS Musteri,  
+          h.HesapNo,  
+          COUNT(i.IslemID) AS TransferSayisi,  
+          SUM(i.IslemTutari) AS TransferMiktarı
+      FROM Musteri m
+      JOIN Hesaplar h ON m.MusteriID = h.MusteriID 
+      JOIN Islemler i ON h.HesapNo = i.KaynakHesapNo 
+      GROUP BY m.Ad, m.Soyad, h.HesapNo 
+      HAVING COUNT(i.IslemID) >= 1;
+
+
+******* 4. SORGU 
+    SELECT 
+        m.Ad + ' ' + m.Soyad AS MusteriAdSoyad,
+        i.IslemTuru,
+        i.IslemTarihi, 
+        SUM(i.IslemTutari) AS ToplamIslemTutari
+    FROM Musteri m
+    JOIN Hesaplar h ON m.MusteriID = h.MusteriID
+    JOIN Islemler i ON h.HesapNo = i.KaynakHesapNo
+    WHERE i.IslemTarihi > '2023-01-01'
+    GROUP BY m.Ad, m.Soyad, i.IslemTuru, i.IslemTarihi 
+    HAVING SUM(i.IslemTutari) > 1000
+    ORDER BY ToplamIslemTutari DESC;
+
+
+
+******* 5. SORGU 
+    SELECT 
+        b.BasvuruDurumu, 
+        COUNT(mu.MusteriUrunID) AS TeslimEdilenUrunSayisi, 
+        AVG(m.KrediPuani) AS OrtalamaKrediPuani,
+        MIN(m.KrediPuani) AS EnDusukPuan
+    FROM Basvuru b
+    JOIN Musteri m ON b.MusteriID = m.MusteriID
+    JOIN MusteriUrun mu ON m.MusteriID = mu.MusteriID
+    WHERE b.BasvuruDurumu = 'Onaylandı'
+    GROUP BY b.BasvuruDurumu
+    HAVING COUNT(mu.MusteriUrunID) >= 1;
+
+
+    
